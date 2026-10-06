@@ -11,39 +11,32 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.32;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x151b26);
-scene.fog = new THREE.Fog(0x151b26, 55, 130);
+scene.background = new THREE.Color(0x2b3442);
+scene.fog = new THREE.Fog(0x2b3442, 60, 130);
 
 const camera = new THREE.PerspectiveCamera(48, innerWidth / innerHeight, 0.1, 400);
-camera.position.set(21, 14, 25);
+camera.position.set(34, 24, 40);
 
 const controls = new OrbitControls(camera, canvas);
-controls.target.set(0, 9, 0);
+controls.target.set(0, 10, 0);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
 controls.maxPolarAngle = Math.PI * 0.495;
 controls.minDistance = 2;
-controls.maxDistance = 70;
+controls.maxDistance = 90;
 controls.autoRotateSpeed = 1.0;
 
 const hemi = new THREE.HemisphereLight(0x99a7c0, 0x554a3c, 1.1);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffe2b8, 2.1);
-sun.position.set(20, 28, 14);
+sun.position.set(20, 30, 14);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -24; sun.shadow.camera.right = 24;
-sun.shadow.camera.top = 26; sun.shadow.camera.bottom = -10;
-sun.shadow.camera.far = 100;
+sun.shadow.camera.left = -26; sun.shadow.camera.right = 26;
+sun.shadow.camera.top = 26; sun.shadow.camera.bottom = -26;
+sun.shadow.camera.far = 90;
 sun.shadow.bias = -0.0006;
 scene.add(sun);
-// 室内暖光
-const plWax = new THREE.PointLight(0xff9a3e, 60, 15, 2);
-plWax.position.set(-3.2, 2.8, 0.5); scene.add(plWax);
-const plThrone = new THREE.PointLight(0xffb060, 90, 22, 2);
-plThrone.position.set(0, 15.5, -2); scene.add(plThrone);
-const plFire = new THREE.PointLight(0xff8c2e, 50, 11, 2);
-plFire.position.set(7, 1.8, 9); scene.add(plFire);
 
 /* ============ 程序化纹理 ============ */
 function canvasTex(size, draw, rx = 1, ry = 1) {
@@ -57,49 +50,73 @@ function canvasTex(size, draw, rx = 1, ry = 1) {
   t.anisotropy = 4;
   return t;
 }
-let _s = 23;
+let _s = 29;
 function rnd() { _s = (_s * 16807) % 2147483647; return (_s - 1) / 2147483646; }
 
 const stoneTex = canvasTex(256, (g, s) => {
-  g.fillStyle = '#5b6067'; g.fillRect(0, 0, s, s);
-  const bh = 42;
-  for (let y = 0, row = 0; y < s; y += bh, row++) {
-    g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, y, s, 3);
-    const off = (row % 2) * 42;
-    for (let x = -84; x < s + 84; x += 84) { g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(x + off, y, 3, bh); }
+  g.fillStyle = '#7d7a72'; g.fillRect(0, 0, s, s);
+  for (let y = 0; y < s; y += 42) for (let x = 0; x < s; x += 64) {
+    const ox = (y / 42 % 2) * 32;
+    g.fillStyle = `rgb(${118 + rnd() * 22 | 0},${114 + rnd() * 20 | 0},${104 + rnd() * 18 | 0})`;
+    g.fillRect(x + ox - 32, y + 2, 60, 38);
   }
+  g.strokeStyle = 'rgba(40,38,34,.7)'; g.lineWidth = 3;
+  for (let y = 0; y <= s; y += 42) { g.beginPath(); g.moveTo(0, y); g.lineTo(s, y); g.stroke(); }
   for (let i = 0; i < 900; i++) {
-    g.fillStyle = rnd() > .5 ? 'rgba(0,0,0,.25)' : 'rgba(255,255,255,.1)';
-    g.fillRect(rnd() * s, rnd() * s, 2, 2);
+    g.fillStyle = rnd() > .5 ? 'rgba(50,48,44,.28)' : 'rgba(200,195,180,.18)';
+    g.fillRect(rnd() * s, rnd() * s, 2 + rnd() * 3, 2 + rnd() * 3);
   }
 }, 3, 2);
-const floorTex = canvasTex(256, (g, s) => {
-  g.fillStyle = '#33363c'; g.fillRect(0, 0, s, s);
-  for (let y = 0; y <= s; y += 64) { g.fillStyle = 'rgba(0,0,0,.5)'; g.fillRect(0, y, s, 3); g.fillRect(y, 0, 3, s); }
-  for (let i = 0; i < 700; i++) {
-    g.fillStyle = rnd() > .5 ? 'rgba(0,0,0,.3)' : 'rgba(255,255,255,.07)';
-    g.fillRect(rnd() * s, rnd() * s, 2, 2);
+const darkStoneTex = canvasTex(256, (g, s) => {
+  g.fillStyle = '#4e4c48'; g.fillRect(0, 0, s, s);
+  for (let y = 0; y < s; y += 52) for (let x = 0; x < s; x += 78) {
+    const ox = (y / 52 % 2) * 39;
+    g.fillStyle = `rgb(${72 + rnd() * 16 | 0},${70 + rnd() * 14 | 0},${66 + rnd() * 12 | 0})`;
+    g.fillRect(x + ox - 39, y + 2, 74, 48);
   }
-}, 4, 4);
-const ashTex = canvasTex(256, (g, s) => {
-  g.fillStyle = '#252926'; g.fillRect(0, 0, s, s);
+  g.strokeStyle = 'rgba(20,18,16,.8)'; g.lineWidth = 3;
+  for (let y = 0; y <= s; y += 52) { g.beginPath(); g.moveTo(0, y); g.lineTo(s, y); g.stroke(); }
+  for (let i = 0; i < 700; i++) {
+    g.fillStyle = 'rgba(15,14,12,.3)';
+    g.fillRect(rnd() * s, rnd() * s, 2 + rnd() * 4, 2 + rnd() * 4);
+  }
+}, 3, 2);
+const woodTex = canvasTex(256, (g, s) => {
+  g.fillStyle = '#4a3423'; g.fillRect(0, 0, s, s);
+  for (let x = 0; x < s; x += 32) {
+    g.fillStyle = `rgba(${60 + rnd() * 25 | 0},${38 + rnd() * 16 | 0},20,.5)`;
+    g.fillRect(x, 0, 30, s);
+    g.strokeStyle = 'rgba(20,12,6,.6)'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(x, 0); g.lineTo(x, s); g.stroke();
+  }
+}, 2, 2);
+const paperTex = canvasTex(128, (g, s) => {
+  g.fillStyle = '#cbb98f'; g.fillRect(0, 0, s, s);
+  g.strokeStyle = 'rgba(90,70,40,.5)'; g.lineWidth = 1;
+  for (let y = 12; y < s; y += 10) { g.beginPath(); g.moveTo(8, y); g.lineTo(s - 8, y); g.stroke(); }
+  for (let i = 0; i < 200; i++) { g.fillStyle = 'rgba(120,95,55,.25)'; g.fillRect(rnd() * s, rnd() * s, 2, 2); }
+});
+const waxTex = canvasTex(128, (g, s) => {
+  g.fillStyle = '#e8ddc4'; g.fillRect(0, 0, s, s);
+  for (let i = 0; i < 40; i++) {
+    g.fillStyle = `rgba(${200 + rnd() * 40 | 0},${185 + rnd() * 35 | 0},${150 + rnd() * 30 | 0},.6)`;
+    const x = rnd() * s;
+    g.fillRect(x, 0, 3 + rnd() * 5, rnd() * s);
+  }
+}, 2, 2);
+const carpetTex = canvasTex(128, (g, s) => {
+  g.fillStyle = '#7a1e1e'; g.fillRect(0, 0, s, s);
+  g.strokeStyle = '#c9a24a'; g.lineWidth = 6; g.strokeRect(6, 6, s - 12, s - 12);
+  g.strokeStyle = 'rgba(201,162,74,.5)'; g.lineWidth = 2;
+  for (let i = 0; i < 5; i++) { g.strokeRect(18 + i * 8, 18 + i * 8, s - 36 - i * 16, s - 36 - i * 16); }
+}, 1, 4);
+const groundTex = canvasTex(256, (g, s) => {
+  g.fillStyle = '#3d3a35'; g.fillRect(0, 0, s, s);
   for (let i = 0; i < 2200; i++) {
-    g.fillStyle = rnd() > .6 ? 'rgba(130,125,110,.22)' : 'rgba(0,0,0,.4)';
-    const r = 1 + rnd() * 3;
-    g.fillRect(rnd() * s, rnd() * s, r, r);
+    g.fillStyle = rnd() > .5 ? 'rgba(25,23,20,.5)' : 'rgba(90,85,75,.35)';
+    g.fillRect(rnd() * s, rnd() * s, 2 + rnd() * 3, 2 + rnd() * 3);
   }
 }, 16, 16);
-const bannerTex = canvasTex(128, (g, s) => {
-  g.fillStyle = '#141416'; g.fillRect(0, 0, s, s);
-  g.fillStyle = '#5e1420'; g.fillRect(14, 0, s - 28, s);
-  g.strokeStyle = '#a8842e'; g.lineWidth = 5; g.strokeRect(19, 7, s - 38, s - 14);
-  g.strokeStyle = '#c09a3e'; g.lineWidth = 4;
-  g.beginPath(); g.arc(s / 2, s * 0.3, 20, 0, Math.PI * 2); g.stroke();
-  g.beginPath(); g.moveTo(s / 2, s * 0.52); g.lineTo(s / 2, s * 0.78); g.stroke();
-  g.beginPath(); g.moveTo(s / 2 - 14, s * 0.62); g.lineTo(s / 2 + 14, s * 0.62); g.stroke();
-  g.fillStyle = '#141416';
-  g.beginPath(); g.moveTo(14, s); g.lineTo(s / 2, s - 26); g.lineTo(s - 14, s); g.closePath(); g.fill();
-});
 
 /* ============ 材质与建模助手 ============ */
 function M(color, o = {}) {
@@ -110,39 +127,50 @@ function M(color, o = {}) {
     side: o.side || THREE.FrontSide
   });
 }
-const extMats = [];   // 外墙材质（透视模式下变透明）
+const extMats = [];
 function extM(color, o = {}) { const m = M(color, o); extMats.push(m); return m; }
 
-function box(w, h, d, material, x, y, z, parent, ry = 0) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
-  m.position.set(x, y, z); m.rotation.y = ry;
-  m.castShadow = m.receiveShadow = true;
-  (parent || scene).add(m);
-  tagPart(m, parent);
-  return m;
-}
-function cyl(rt, rb, h, material, x, y, z, parent, seg = 14) {
-  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), material);
-  m.position.set(x, y, z);
-  m.castShadow = m.receiveShadow = true;
-  (parent || scene).add(m);
-  tagPart(m, parent);
-  return m;
-}
-function sph(r, material, x, y, z, parent, sx = 1, sy = 1, sz = 1) {
-  const m = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 12), material);
-  m.position.set(x, y, z); m.scale.set(sx, sy, sz);
-  m.castShadow = m.receiveShadow = true;
-  (parent || scene).add(m);
-  tagPart(m, parent);
-  return m;
-}
 function tagPart(mesh, parent) {
   let n = parent;
   while (n) {
     if (n.userData && n.userData.isPart) { mesh.userData.partId = n.userData.partId; break; }
     n = n.parent;
   }
+}
+function box(w, h, d, material, x, y, z, parent, ry = 0) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+  m.position.set(x, y, z); m.rotation.y = ry;
+  m.castShadow = m.receiveShadow = true;
+  (parent || scene).add(m); tagPart(m, parent);
+  return m;
+}
+function cyl(rt, rb, h, material, x, y, z, parent, seg = 14) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), material);
+  m.position.set(x, y, z);
+  m.castShadow = m.receiveShadow = true;
+  (parent || scene).add(m); tagPart(m, parent);
+  return m;
+}
+function cone(r, h, material, x, y, z, parent, seg = 12) {
+  const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, seg), material);
+  m.position.set(x, y, z);
+  m.castShadow = m.receiveShadow = true;
+  (parent || scene).add(m); tagPart(m, parent);
+  return m;
+}
+function sph(r, material, x, y, z, parent, sx = 1, sy = 1, sz = 1) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 12), material);
+  m.position.set(x, y, z); m.scale.set(sx, sy, sz);
+  m.castShadow = m.receiveShadow = true;
+  (parent || scene).add(m); tagPart(m, parent);
+  return m;
+}
+function torus(r, t, material, x, y, z, parent, rx = 0, seg = 20) {
+  const m = new THREE.Mesh(new THREE.TorusGeometry(r, t, 10, seg), material);
+  m.position.set(x, y, z); m.rotation.x = rx;
+  m.castShadow = m.receiveShadow = true;
+  (parent || scene).add(m); tagPart(m, parent);
+  return m;
 }
 function wallSeg(x1, z1, x2, z2, y0, h, t, material, parent) {
   const len = Math.hypot(x2 - x1, z2 - z1);
@@ -154,7 +182,7 @@ function wallSeg(x1, z1, x2, z2, y0, h, t, material, parent) {
 
 /* ============ 部件注册表 ============ */
 const PARTS = {};
-const CATS = { out: '外部', f0: '底层', f1: '中层', f2: '顶层' };
+const CATS = { out: '外部', l1: '一层 · 入口', l2: '二层 · 蜡池厅', l3: '三层 · 藏书廊', l4: '顶层 · 王座厅', roof: '屋顶', yard: '庭院' };
 function defPart(id, meta) { PARTS[id] = Object.assign({ id, group: null }, meta); }
 function P(id, parent) {
   const g = new THREE.Group();
@@ -164,519 +192,624 @@ function P(id, parent) {
   return g;
 }
 
-defPart('wall0',   { name: '底层石墙', cat: 'out', layer: 'f0', label: [-6.45, 3.2, 0], viewDir: [-1, .4, .55], desc: '数百年风雨侵蚀的灰岩墙体，下半截凝着蜡油——那是学者们留下的痕迹，还是某种仪式的残留？' });
-defPart('wall1',   { name: '中层石墙', cat: 'out', layer: 'mid', label: [-6.45, 9, 0], viewDir: [-1, .4, .55], desc: '书库的中段，石缝里塞满了被风吹出的书页。穿过走廊时，仿佛能听见纸张翻动的声音。' });
-defPart('wall2',   { name: '顶层石墙', cat: 'out', layer: 'top', label: [-6.45, 14.6, 0], viewDir: [-1, .4, .55], desc: '最接近天空的一层。洛斯里克的王族曾在这里俯瞰整座城池，如今只剩下风。' });
-defPart('buttress',{ name: '扶壁', cat: 'out', layer: 'f0', label: [7.2, 2.8, 7.2], viewDir: [1, .4, 1], desc: '粗壮的扶壁撑住塔身，如同巨人的手臂。没有它们，这座书库早就在岁月里塌了。' });
-defPart('terrace', { name: '屋顶露台', cat: 'out', layer: 'roof', label: [4.6, 19, 4.6], viewDir: [1, .5, 1], desc: '顶层的露台，石像鬼们蹲在角落俯视众生。雾散时，能从这里看到整个洛斯里克。' });
-defPart('gargoyle',{ name: '石像鬼', cat: 'out', layer: 'roof', label: [-5.6, 20, 5.6], viewDir: [-1, .5, 1], desc: '石像鬼雕像，传说会在夜里活过来。也有人说，它们只是在等一个值得出手的猎物。' });
-defPart('spire',   { name: '尖塔', cat: 'out', layer: 'roof', label: [0, 25, 0], viewDir: [1, .6, 1], desc: '刺破云层的尖塔，大书库的顶点。双王子的目光，据说能从这里看到传火祭祀场。' });
-defPart('bonfire', { name: '篝火', cat: 'out', layer: 'yard', label: [7, 1.7, 9], viewDir: [1, .5, 1], desc: '书库门外的篝火。盘腿坐下，饮一口原素瓶——前方的路还很长，不死人。' });
-defPart('hall',    { name: '入口大厅', cat: 'f0', layer: 'f0', xray: 1, label: [0, 3.4, 2.5], viewDir: [1, .5, 1], desc: '推开沉重的木门，灰尘在光柱里飞舞。这里曾是学者们进出的地方，如今只剩下回声。' });
-defPart('waxpool', { name: '蜡池', cat: 'f0', layer: 'f0', xray: 1, label: [-3.2, 1.9, 0.5], viewDir: [-1, .5, .6], desc: '乳白色的蜡池。把头浸入蜡中，就能抵御书库深处的诅咒——代价是，你会变得和他们一样。' });
-defPart('candle',  { name: '烛台', cat: 'f0', layer: 'f0', xray: 1, label: [3.6, 2.8, 3], viewDir: [1, .5, 1], desc: '高高的烛台，火焰从未熄灭。是谁在为这座空无一人的书库守夜？' });
-defPart('chandelier', { name: '吊灯链条', cat: 'f0', layer: 'f0', xray: 1, label: [1.8, 4.8, -0.5], viewDir: [.8, .35, .8], desc: '从穹顶垂下的巨大吊灯，铁链上凝着厚厚的蜡。它的光，照亮过无数个不眠之夜。' });
-defPart('stair0',  { name: '石阶', cat: 'f0', layer: 'f0', xray: 1, label: [0, 3.6, -2.5], viewDir: [1, .6, 1], desc: '通往中层的石阶，被无数双脚磨得发亮。他们走上去，是为了寻找那本不存在的书。' });
-defPart('stacks',  { name: '环形藏书走廊', cat: 'f1', layer: 'mid', xray: 1, label: [-4.6, 9.2, 2.5], viewDir: [-1, .7, .7], desc: '环形的藏书走廊，书架上塞满典籍。洛斯里克所有的知识——以及所有的谎言——都在这里。' });
-defPart('spiral',  { name: '旋转书架楼梯', cat: 'f1', layer: 'mid', xray: 1, label: [0, 10.2, 0], viewDir: [1, .55, 1], desc: '会旋转的书架楼梯，机关驱动着它缓缓转动。走错一步，就会被送进书架深处的黑暗里。' });
-defPart('scholar', { name: '学者书桌', cat: 'f1', layer: 'mid', xray: 1, label: [4.3, 8.2, -3.2], viewDir: [1, .6, .4], desc: '学者的书桌，羽毛笔还插在墨水瓶里。他们放下笔的时候，一定没想到自己再也回不来了。' });
-defPart('throne',  { name: '双王子王座厅', cat: 'f2', layer: 'top', xray: 1, label: [0, 15, -2], viewDir: [1, .7, 1], desc: '洛斯里克双王子的王座。哥哥洛里安高大沉默，弟弟洛斯里克瘦小多病——王座上坐着的，是诅咒本身。' });
-defPart('windows', { name: '落地大窗', cat: 'f2', layer: 'top', label: [0, 15.2, 6.6], viewDir: [.6, .5, 1], desc: '高耸的尖拱落地窗，阳光透过洒进来。这是整座书库里，唯一温暖的地方。' });
+defPart('wall-l1',   { name: '一层外墙', cat: 'out', layer: 'l1', label: [-9.4, 2.5, 2], viewDir: [-1, .45, .7], desc: '底层石墙，厚得能挡住一切好奇心——除了不死人的。岁月把石块啃得坑坑洼洼。' });
+defPart('wall-l2',   { name: '二层外墙', cat: 'out', layer: 'l2', label: [9.4, 7.5, -2], viewDir: [1, .45, -.6], desc: '二层外墙。蜡从上层的窗缝里渗出来，沿着墙面凝固成白色的"眼泪"。' });
+defPart('wall-l3',   { name: '三层外墙', cat: 'out', layer: 'l3', label: [-9.4, 13, -2], viewDir: [-1, .5, -.5], desc: '三层外墙，开着高大的尖拱窗。晚上从外面看，里面烛火通明——但最好别进去。' });
+defPart('wall-l4',   { name: '顶层外墙', cat: 'out', layer: 'l4', label: [6.4, 18.5, 0], viewDir: [1, .5, .5], desc: '顶层收分的外墙。双王子的王座厅就在里面，是整座书库最接近天空的地方。' });
+defPart('buttress',  { name: '扶壁群', cat: 'out', layer: 'l2', label: [9.9, 8, 5], viewDir: [1, .5, .8], desc: '哥特式扶壁，撑起高耸塔楼的石之肋骨。没有它们，书库早就在岁月里塌了。' });
+defPart('waxwall',   { name: '蜡封外墙', cat: 'out', layer: 'l1', label: [-5, 3.2, 7.4], viewDir: [-.5, .5, 1], desc: '底层外墙上凝固的蜡油。学者们把蜡涂得到处都是，仿佛整座建筑都在"出汗"。' });
+defPart('courtyard', { name: '入口庭院', cat: 'yard', layer: 'ground', label: [0, 1.2, 12], viewDir: [.3, .6, 1], desc: '书库正门前的石砌庭院。猎龙铠甲倒在不远处，而这里，是通往知识地狱的起点。' });
+defPart('gate-stairs',{ name: '入口石阶', cat: 'yard', layer: 'ground', label: [-4.5, 1, 9.5], viewDir: [-.6, .5, 1], desc: '宽阔的石阶拾级而上。台阶被无数双脚磨得发亮——大多是来送死的脚。' });
+defPart('bonfire',   { name: '篝火台', cat: 'yard', layer: 'ground', label: [5.5, 1.6, 10.5], viewDir: [.8, .5, .8], desc: '大书库篝火。点燃它吧——接下来的路很长，捷径很少，诅咒很多。' });
+defPart('statue',    { name: '庭院雕像', cat: 'yard', layer: 'ground', label: [0, 2.6, 13.5], viewDir: [0, .5, 1], desc: '庭院中央的骑士雕像，无名无姓，像在为什么守灵。' });
+defPart('terrace-e', { name: '东屋顶露台', cat: 'out', layer: 'l3', label: [10.5, 17.2, 0], viewDir: [1, .6, .4], desc: '东侧屋顶露台。从高处缺口翻出来就能到这里，石像鬼喜欢在这里"迎接"客人。' });
+defPart('terrace-w', { name: '西屋顶露台', cat: 'out', layer: 'l3', label: [-10.5, 17.2, 0], viewDir: [-1, .6, .4], desc: '西侧屋顶露台。旁边的小塔爬上去能拿到猎人戒指——如果你够得到梯子。' });
+defPart('gargoyle',  { name: '石像鬼', cat: 'out', layer: 'l3', label: [10.5, 18.6, -4], viewDir: [1, .5, -.5], desc: '石像鬼。它们是雕像——直到你走近。屋顶上那几只会飞下来，记得带够血瓶。' });
+defPart('spire',     { name: '尖塔', cat: 'roof', layer: 'roof', label: [0, 26.5, 0], viewDir: [1, .6, 1], desc: '八角尖塔直指天空，是洛斯里克城最高的知识灯塔——也是诅咒最浓的地方。' });
+defPart('tower-ladder',{ name: '猎人戒指小塔', cat: 'roof', layer: 'roof', label: [-10.5, 20.5, -3], viewDir: [-1, .5, -.6], desc: '西露台旁的小塔。爬上木梯，猎人戒指在塔顶等你——以及不错的狙击位。' });
+defPart('beams-cage',{ name: '横梁牢笼区', cat: 'roof', layer: 'roof', label: [8, 19.5, 5], viewDir: [1, .6, .8], desc: '屋顶破洞下的横梁与铁笼。从这里跳下去，能摸到奇迹"神圣光柱"——如果你胆子够大。' });
+defPart('gate-double',{ name: '双开大门', cat: 'l1', layer: 'l1', label: [0, 2.8, 7.3], viewDir: [0, .4, 1], desc: '没有"大书库钥匙"，这扇门纹丝不动。而钥匙，要用三位薪王的余烬来换。' });
+defPart('hall-entry',{ name: '入口大厅', cat: 'l1', layer: 'l1', xray: 1, label: [0, 3, -1], viewDir: [.8, .8, 1], desc: '穿过大门，结晶老者在这里"迎接"你。他打不过就会瞬移跑路，别追，追不上的。' });
+defPart('stair-l1',  { name: '一层石梯', cat: 'l1', layer: 'l1', xray: 1, noLabel: 1, desc: '大厅北端的石梯，通往二层。每一步都踩在灰尘和书页上。' });
+defPart('waxpool',   { name: '蜡池', cat: 'l2', layer: 'l2', xray: 1, label: [5.5, 7.6, -2], viewDir: [1, .6, -.4], desc: '"把头浸入蜡中"——大书库代代相传的土办法。顶着一脑袋蜡，书中伸出的诅咒之手就奈何不了你。' });
+defPart('altar',     { name: '祭坛', cat: 'l2', layer: 'l2', xray: 1, label: [0, 7.2, -5], viewDir: [0, .7, -1], desc: '蜡池厅北端的祭坛。蜡覆祭司们曾在这里"布道"，现在只剩下蜡和灰。' });
+defPart('priest-wax',{ name: '蜡覆祭司', cat: 'l2', layer: 'l2', xray: 1, label: [-4.5, 6.8, -1], viewDir: [-1, .6, 0], desc: '浑身裹满蜡的祭司，蜡是他们的铠甲，也是他们的棺材。' });
+defPart('lever-shelf',{ name: '书架机关拉杆', cat: 'l2', layer: 'l2', xray: 1, label: [-7, 6.8, 2], viewDir: [-1, .6, .5], desc: '拉下拉杆，书架滑开，密室露出——女巫的发饰和咒术"内在潜力"就藏在这种地方。魂系传统艺能。' });
+defPart('stair-l2',  { name: '二层石梯', cat: 'l2', layer: 'l2', xray: 1, noLabel: 1, desc: '通往三层藏书廊的石梯。越往上，书越多，手也越多。' });
+defPart('lift',      { name: '快捷升降机', cat: 'l2', layer: 'l2', xray: 1, label: [8.2, 7.5, 4], viewDir: [1, .6, .6], desc: '直通一层的升降机。拉闸开门，回到入口——这是贯穿全关最重要的捷径，千万别错过。' });
+defPart('gallery',   { name: '藏书长廊', cat: 'l3', layer: 'l3', xray: 1, label: [0, 13.5, 0], viewDir: [1, .9, 1], desc: '挑高的藏书长廊，书架顶到天花板。学者们在这里游荡，寻找早已失传的秘密。' });
+defPart('shelves',   { name: '高大书架群', cat: 'l3', layer: 'l3', xray: 1, label: [-6.5, 13, 3], viewDir: [-1, .7, .6], desc: '顶天立地的书架，塞满了书。有些书里，会伸出手来。' });
+defPart('shelf-slide',{ name: '滑动书架', cat: 'l3', layer: 'l3', xray: 1, label: [6.5, 12.5, -3], viewDir: [1, .7, -.5], desc: '又一处机关书架。拉杆在附近，宝箱在书架后面——楔形石块在向你招手。' });
+defPart('curse-hands',{ name: '诅咒之手', cat: 'l3', layer: 'l3', xray: 1, label: [-2, 12.5, -5.5], viewDir: [-.4, .7, -1], desc: '从书页和墙缝里伸出的鬼手。没浸蜡就被它们摸到，诅咒条涨得比血条还快。' });
+defPart('balcony',   { name: '回廊阳台', cat: 'l3', layer: 'l3', xray: 1, label: [0, 14.8, 6.2], viewDir: [.5, .8, 1], desc: '长廊两侧的回廊阳台，可以俯视整个大厅——也是被鬼手摸到的好地方。' });
+defPart('chandelier',{ name: '吊灯', cat: 'l3', layer: 'l3', xray: 1, label: [0, 15.2, 0], viewDir: [.6, .5, .8], desc: '铁环吊灯，烛火长明。没人添油，但它从不熄灭——别问，问就是薪火。' });
+defPart('desk-scholar',{ name: '学者书桌', cat: 'l3', layer: 'l3', xray: 1, label: [4, 11.5, 4.5], viewDir: [1, .7, 1], desc: '学者的书桌：书堆、蜡烛、羽毛笔。他们研究了一辈子，最后都变成了游魂。' });
+defPart('stair-spiral',{ name: '旋转楼梯', cat: 'l3', layer: 'l3', xray: 1, label: [-3.5, 13.5, -1], viewDir: [-.8, .8, -.6], desc: '长廊中央的环形大楼梯，盘旋而上连接各层。跑图时可以在这里把追兵耍得团团转。' });
+defPart('corridor',  { name: '王座长廊', cat: 'l4', layer: 'l4', xray: 1, label: [0, 18.5, 1], viewDir: [.7, .8, 1], desc: '穿过双开大门，红毯直通王座。洛斯里克的王子们，就在前面等你。' });
+defPart('throne',    { name: '双王子王座', cat: 'l4', layer: 'l4', xray: 1, label: [0, 18.8, -3.5], viewDir: [0, .6, -1], desc: '一大一小两张王座：洛里安与洛斯里克。弟弟体弱，哥哥背负着他——这是全游戏最让人心碎的 Boss 战。' });
+defPart('window-great',{ name: '落地大窗', cat: 'l4', layer: 'l4', xray: 1, label: [-6.2, 18.5, -1], viewDir: [-1, .6, -.3], desc: '挑高的尖拱大窗，洛斯里克灰蓝色的天光从这里洒进来，照在王座上。' });
+defPart('carpet',    { name: '红毯', cat: 'l4', layer: 'l4', xray: 1, noLabel: 1, desc: '从门口一直铺到王座前的红毯。踩上去，就没有回头路了。' });
+defPart('tapestry',  { name: '挂毯', cat: 'l4', layer: 'l4', xray: 1, noLabel: 1, desc: '墙上的挂毯绣着洛斯里克王室的纹章，如今只剩灰尘记得它。' });
+defPart('sword-lorian',{ name: '洛里安大剑', cat: 'l4', layer: 'l4', xray: 1, label: [2.2, 17.5, -3.5], viewDir: [1, .6, -.6], desc: '洛里安的大剑，斜倚在王座旁。圣剑的光辉熄灭了，但分量还在。' });
 
-/* ============ 尺寸常量 ============ */
-const W = 12, D = 12, T = 0.6;   // 塔身宽 / 深 / 墙厚
-const F0 = 0.5, H0 = 5.5;        // 底层地面 / 层高
-const F1 = 6.0, H1 = 5.5;        // 中层
-const F2 = 11.5, H2 = 6.0;       // 顶层
-const ROOF = 17.5;               // 露台高度
+/* ============ 尺寸与层组 ============ */
+const T = 0.4;                       // 石墙厚
+const L1Y = 0, L1H = 5;              // 一层 0~5
+const L2Y = 5, L2H = 5;              // 二层 5~10
+const L3Y = 10, L3H = 6;             // 三层 10~16
+const L4Y = 16, L4H = 5;             // 顶层 16~21
+const TOPY = 21;                     // 屋顶基线
 
-/* 层组（用于分层展开与视角切换） */
-const gF0 = new THREE.Group(), gMid = new THREE.Group(),
-      gTop = new THREE.Group(), gRoof = new THREE.Group();
-scene.add(gF0, gMid, gTop, gRoof);
-const cutWalls = {};  // 剖面视角时隐藏的墙分组
+const gGround = new THREE.Group(), gL1 = new THREE.Group(), gL2 = new THREE.Group(),
+      gL3 = new THREE.Group(), gL4 = new THREE.Group(), gRoof = new THREE.Group();
+scene.add(gGround, gL1, gL2, gL3, gL4, gRoof);
+const cutWalls = {};                 // 剖面时隐藏的墙分组
 
-/* ============ 外部 ============ */
-const stoneDarkM = M(0x4a4e55, { map: stoneTex, rough: 0.95 });
-const flameM = M(0xff7a1e, { emissive: 0xff6a00, ei: 2.4, rough: 0.6 });
-const waxM = M(0xe6d9bd, { rough: 0.5 });
-const goldM = M(0xa8842e, { rough: 0.4, metal: 0.6 });
+/* ============ 共享材质 ============ */
+const stoneM = extM(0xffffff, { map: stoneTex, rough: 0.95 });
+const stoneFrameM = extM(0x8a867c, { map: stoneTex, rough: 0.95 });
+const darkStoneM = M(0xffffff, { map: darkStoneTex, rough: 0.95 });
+const woodM = M(0xffffff, { map: woodTex, rough: 0.85 });
+const darkWoodM = M(0x2e2013, { rough: 0.85 });
+const waxM = extM(0xffffff, { map: waxTex, rough: 0.6 });
+const waxPureM = M(0xe9dfc6, { rough: 0.45, emissive: 0x5a4a30, ei: 0.25 });
+const parapM = extM(0x8a867c, { map: stoneTex, rough: 0.95 });
+const glassLitM = M(0xffb45e, { emissive: 0xff9a3e, ei: 0.85, rough: 0.4 });
+const glassDarkM = M(0x141821, { rough: 0.3, metal: 0.2 });
+const ironM = M(0x2b2b30, { rough: 0.55, metal: 0.6 });
+const goldM = M(0xc9a24a, { rough: 0.35, metal: 0.7 });
+const paperM = M(0xffffff, { map: paperTex, rough: 0.95 });
+const layerGroup = { ground: gGround, l1: gL1, l2: gL2, l3: gL3, l4: gL4, roof: gRoof };
+function LP(id) { return P(id, layerGroup[PARTS[id].layer]); }
+
+/* 每层外墙（南/北/东/西分组，南+东供剖面隐藏），附带本层地板 */
+function levelWalls(id, y0, h, x0, x1, z0, z1, withFloor) {
+  const g = LP(id);
+  const gs = new THREE.Group(), gn = new THREE.Group(), gw = new THREE.Group(), ge = new THREE.Group();
+  g.add(gs, gn, gw, ge);
+  const w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+  box(w, h, T, stoneM, cx, y0 + h / 2, z1 - T / 2, gs);
+  box(w, h, T, stoneM, cx, y0 + h / 2, z0 + T / 2, gn);
+  box(T, h, d, stoneM, x0 + T / 2, y0 + h / 2, cz, gw);
+  box(T, h, d, stoneM, x1 - T / 2, y0 + h / 2, cz, ge);
+  if (withFloor) box(w, 0.3, d, darkStoneM, cx, y0 + 0.15, cz, g);
+  cutWalls[id + 's'] = gs; cutWalls[id + 'e'] = ge;
+  return { g, gs, gn, gw, ge };
+}
+
+/* 尖拱窗 */
+function pointedWin(w, h, x, y, z, ry, parent, lit = true) {
+  const grp = new THREE.Group(); grp.position.set(x, y, z); grp.rotation.y = ry; parent.add(grp);
+  const gl = box(w, h, 0.08, lit ? glassLitM : glassDarkM, 0, 0, 0, grp); gl.castShadow = false;
+  box(0.24, h + 0.24, 0.26, stoneFrameM, -w / 2 - 0.12, 0, 0.02, grp);
+  box(0.24, h + 0.24, 0.26, stoneFrameM, w / 2 + 0.12, 0, 0.02, grp);
+  box(w + 0.48, 0.24, 0.26, stoneFrameM, 0, -h / 2 - 0.12, 0.02, grp);
+  const t1 = box(0.2, h * 0.42, 0.24, stoneFrameM, -w * 0.22, h / 2 + h * 0.13, 0.02, grp); t1.rotation.z = 0.55;
+  const t2 = box(0.2, h * 0.42, 0.24, stoneFrameM, w * 0.22, h / 2 + h * 0.13, 0.02, grp); t2.rotation.z = -0.55;
+  box(0.09, h, 0.1, stoneFrameM, 0, 0, 0.05, grp);
+  box(w, 0.09, 0.1, stoneFrameM, 0, h * 0.12, 0.05, grp);
+  return grp;
+}
+/* 扶壁 */
+function buttress(x, z, y0, h, parent) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g);
+  const m = stoneFrameM;
+  box(1.3, h * 0.5, 1.3, m, 0, y0 + h * 0.25, 0, g);
+  box(0.95, h * 0.3, 0.95, m, 0, y0 + h * 0.65, 0, g);
+  box(0.62, h * 0.2, 0.62, m, 0, y0 + h * 0.9, 0, g);
+  cone(0.5, 0.9, m, 0, y0 + h + 0.45, 0, g, 4);
+}
+/* 女儿墙 */
+function parapet(x1, z1, x2, z2, y, parent) {
+  const len = Math.hypot(x2 - x1, z2 - z1);
+  const n = Math.max(2, Math.round(len / 1.3));
+  const horiz = Math.abs(x2 - x1) > Math.abs(z2 - z1);
+  box(horiz ? len : 0.35, 0.9, horiz ? 0.35 : len, parapM, (x1 + x2) / 2, y + 0.45, (z1 + z2) / 2, parent);
+  for (let i = 0; i < n; i++) {
+    const t = (i + 0.5) / n;
+    box(horiz ? 0.6 : 0.45, 0.5, horiz ? 0.45 : 0.6, parapM, x1 + (x2 - x1) * t, y + 1.12, z1 + (z2 - z1) * t, parent);
+  }
+}
+/* 石像鬼 */
+function gargoyle(x, y, z, ry, parent) {
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; parent.add(g);
+  const m = M(0x5c5a55, { rough: 0.95 });
+  box(0.5, 0.7, 0.9, m, 0, 0.35, 0, g);
+  box(0.34, 0.34, 0.42, m, 0, 0.85, 0.36, g);
+  cone(0.09, 0.32, m, -0.12, 1.12, 0.3, g);
+  cone(0.09, 0.32, m, 0.12, 1.12, 0.3, g);
+  const w1 = box(0.14, 0.95, 0.72, m, -0.36, 0.72, -0.26, g); w1.rotation.z = 0.5; w1.rotation.y = 0.4;
+  const w2 = box(0.14, 0.95, 0.72, m, 0.36, 0.72, -0.26, g); w2.rotation.z = -0.5; w2.rotation.y = -0.4;
+  box(0.16, 0.16, 0.75, m, 0, 0.22, -0.72, g);
+  box(0.7, 0.25, 0.7, m, 0, -0.05, 0, g);
+}
+/* 石梯 */
+function stairRun(w, n, rise, run, x, y0, z0, dirZ, parent, mat) {
+  for (let i = 0; i < n; i++)
+    box(w, rise * (i + 1), run, mat || darkStoneM, x, y0 + rise * (i + 1) / 2, z0 + dirZ * run * (i + 0.5), parent);
+}
+
+
+/* ============ 地面与庭院 ============ */
+(function buildGround() {
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), M(0xffffff, { map: groundTex, rough: 1 }));
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true;
+  scene.add(ground);
+
+  const cy = P('courtyard', gGround);
+  box(17, 0.14, 8.5, darkStoneM, 0, 0.02, 11.2, cy);                    // 庭院铺地
+  box(20, 0.5, 19, darkStoneM, 0, -0.3, 3.2, cy);                      // 建筑基座
+  // 庭院边缘矮柱
+  for (let i = 0; i < 5; i++) {
+    box(0.5, 1.1, 0.5, stoneFrameM, -8 + i * 4, 0.55, 15.2, cy);
+    sph(0.3, stoneFrameM, -8 + i * 4, 1.25, 15.2, cy);
+  }
+
+  // 入口石阶
+  const st = P('gate-stairs', gGround);
+  stairRun(7, 4, 0.16, 0.55, 0, 0.05, 7.6, 1, st);
+
+  // 篝火台
+  const bf = P('bonfire', gGround);
+  torus(0.85, 0.22, darkStoneM, 5.5, 0.25, 10.5, bf, Math.PI / 2);
+  cone(0.8, 0.5, M(0x8a857c, { rough: 1 }), 5.5, 0.3, 10.5, bf, 10);
+  box(0.14, 1.5, 0.3, ironM, 5.5, 0.9, 10.5, bf);                       // 螺旋剑剑身
+  box(0.5, 0.12, 0.14, ironM, 5.5, 1.35, 10.5, bf);
+  const fl1 = cone(0.32, 0.9, M(0xff7a1e, { emissive: 0xff6a00, ei: 2.2, rough: 0.6 }), 5.5, 0.95, 10.5, bf, 8);
+  const fl2 = cone(0.18, 0.55, M(0xffd97a, { emissive: 0xffc84a, ei: 2.6, rough: 0.6 }), 5.5, 1.0, 10.5, bf, 8);
+  fl1.castShadow = fl2.castShadow = false;
+  const fireLight = new THREE.PointLight(0xff8c2e, 60, 20, 2);
+  fireLight.position.set(5.5, 1.6, 10.5); bf.add(fireLight);
+
+  // 庭院雕像：骑士
+  const su = P('statue', gGround);
+  box(1.6, 1.0, 1.6, darkStoneM, 0, 0.55, 13.6, su);
+  box(1.2, 0.3, 1.2, stoneFrameM, 0, 1.2, 13.6, su);
+  const km = M(0x6a675e, { rough: 0.8, metal: 0.25 });
+  box(0.62, 1.1, 0.4, km, 0, 1.9, 13.6, su);
+  sph(0.22, km, 0, 2.6, 13.6, su);
+  box(0.5, 0.16, 0.5, km, 0, 2.78, 13.6, su);
+  const sw = box(0.12, 1.5, 0.2, ironM, 0.45, 1.8, 13.9, su); sw.rotation.x = 0.25;
+  box(0.3, 0.9, 0.24, km, -0.42, 1.75, 13.6, su);
+  box(0.3, 0.9, 0.24, km, 0.42, 1.75, 13.6, su);
+})();
+
+/* ============ 四层外墙（含剖面分组） ============ */
+const W1 = levelWalls('wall-l1', L1Y, L1H, -9, 9, -7, 7, true);
+const W2 = levelWalls('wall-l2', L2Y, L2H, -9, 9, -7, 7, true);
+const W3 = levelWalls('wall-l3', L3Y, L3H, -9, 9, -7, 7, true);
+const W4 = levelWalls('wall-l4', L4Y, L4H, -6, 6, -5, 3, true);
+box(12.8, 0.35, 8.8, darkStoneM, 0, TOPY + 0.17, -1, W4.g);   // 顶层屋顶板
 
 (function buildExterior() {
-  // 地基
-  box(W + 1.2, 1.2, D + 1.2, stoneDarkM, 0, -0.1, 0, gF0);
+  // 扶壁：四角 + 墙中
+  const bt = P('buttress', gL2);
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) buttress(sx * 9.4, sz * 7.4, 0, 15.5, bt);
+  for (const sx of [-4.5, 0, 4.5]) { buttress(sx, 7.4, 0, 15.5, bt); buttress(sx, -7.4, 0, 15.5, bt); }
+  for (const sz of [-3.5, 3.5]) { buttress(9.4, sz, 0, 15.5, bt); buttress(-9.4, sz, 0, 15.5, bt); }
 
-  const stone0 = extM(0xffffff, { map: stoneTex, rough: 0.95 });
-  const stone1 = extM(0xffffff, { map: stoneTex, rough: 0.95 });
-  const stone2 = extM(0xffffff, { map: stoneTex, rough: 0.95 });
-  function wallTier(Pid, gLayer, y0, h, key) {
-    const w = P(Pid, gLayer);
-    const s = new THREE.Group(), n = new THREE.Group(), ww = new THREE.Group(), e = new THREE.Group();
-    w.add(s, n, ww, e);
-    const sm = Pid === 'wall0' ? stone0 : Pid === 'wall1' ? stone1 : stone2;
-    box(W, h, T, sm, 0, y0 + h / 2, D / 2 - T / 2, s);
-    box(W, h, T, sm, 0, y0 + h / 2, -D / 2 + T / 2, n);
-    box(T, h, D, sm, -W / 2 + T / 2, y0 + h / 2, 0, ww);
-    box(T, h, D, sm, W / 2 - T / 2, y0 + h / 2, 0, e);
-    cutWalls[key + 's'] = s; cutWalls[key + 'e'] = e;
-    return { w, s, n, ww, e };
-  }
-  const t0 = wallTier('wall0', gF0, F0, H0, 'w0');
-  const t1 = wallTier('wall1', gMid, F1, H1, 'w1');
-  const t2 = wallTier('wall2', gTop, F2, H2, 'w2');
-  // 层间腰线
-  const trimM = M(0x3a3e45, { rough: 0.9 });
-  box(W + 0.3, 0.35, D + 0.3, trimM, 0, F1 - 0.15, 0, t0.w);
-  box(W + 0.3, 0.35, D + 0.3, trimM, 0, F2 - 0.15, 0, t1.w);
-  box(W + 0.3, 0.4, D + 0.3, trimM, 0, ROOF - 0.2, 0, t2.w);
-
-  // 尖拱窗助手（y = 窗底）
-  const glassM = M(0x9fc4e8, { rough: 0.2, metal: 0.1, transparent: true, opacity: 0.5, emissive: 0x2a4a66, ei: 0.35 });
-  const frameM = M(0x3a3e45, { rough: 0.85 });
-  function archWin(w, h, x, y, z, ry, parent) {
-    const grp = new THREE.Group(); grp.position.set(x, y, z); grp.rotation.y = ry; parent.add(grp);
-    box(w + 0.35, h, 0.4, frameM, 0, h / 2, 0, grp);
-    const gl = box(w, h - 0.25, 0.12, glassM, 0, h / 2, 0.06, grp); gl.castShadow = false;
-    box(0.09, h - 0.25, 0.14, frameM, 0, h / 2, 0.07, grp);
-    box(w, 0.09, 0.14, frameM, 0, h * 0.62, 0.07, grp);
-    box(w + 0.55, 0.18, 0.5, frameM, 0, -0.05, 0.02, grp);   // 窗台
-    const aw = Math.hypot(w / 2 + 0.18, 1.0);                // 尖拱顶
-    const a1 = box(aw, 0.28, 0.4, frameM, -(w / 4 + 0.09), h + 0.36, 0, grp); a1.rotation.z = 0.5;
-    const a2 = box(aw, 0.28, 0.4, frameM, (w / 4 + 0.09), h + 0.36, 0, grp); a2.rotation.z = -0.5;
-    return grp;
-  }
-  // 底层窗
-  for (const x of [-3.5, 3.5]) archWin(1.3, 2.2, x, F0 + 1.6, D / 2 + 0.02, 0, t0.s);
-  for (const x of [-3.5, 0, 3.5]) archWin(1.3, 2.2, x, F0 + 1.6, -D / 2 - 0.02, Math.PI, t0.n);
-  for (const z of [-2.5, 2.5]) archWin(1.3, 2.2, W / 2 + 0.02, F0 + 1.6, z, Math.PI / 2, t0.e);
-  for (const z of [-2.5, 2.5]) archWin(1.3, 2.2, -W / 2 - 0.02, F0 + 1.6, z, -Math.PI / 2, t0.ww);
-  // 中层窗
-  for (const x of [-3.5, 0, 3.5]) archWin(1.5, 2.8, x, F1 + 1.3, D / 2 + 0.02, 0, t1.s);
-  for (const x of [-3.5, 0, 3.5]) archWin(1.5, 2.8, x, F1 + 1.3, -D / 2 - 0.02, Math.PI, t1.n);
-  for (const z of [-2, 2]) archWin(1.5, 2.8, W / 2 + 0.02, F1 + 1.3, z, Math.PI / 2, t1.e);
-  for (const z of [-2, 2]) archWin(1.5, 2.8, -W / 2 - 0.02, F1 + 1.3, z, -Math.PI / 2, t1.ww);
-
-  // 大门（底层南）
-  const doorM = extM(0x4a2f1c, { rough: 0.85 });
-  box(3.2, 4.0, 0.7, frameM, 0, F0 + 2.0, D / 2 - 0.1, t0.s);
-  box(1.3, 3.4, 0.2, doorM, -0.68, F0 + 1.7, D / 2 + 0.12, t0.s);
-  box(1.3, 3.4, 0.2, doorM, 0.68, F0 + 1.7, D / 2 + 0.12, t0.s);
-  for (const sx of [-0.68, 0.68]) for (const yy of [1.2, 2.4])
-    sph(0.07, goldM, sx, F0 + yy, D / 2 + 0.25, t0.s);
-  const da1 = box(2.2, 0.35, 0.7, frameM, -0.75, F0 + 4.35, D / 2 - 0.1, t0.s); da1.rotation.z = 0.55;
-  const da2 = box(2.2, 0.35, 0.7, frameM, 0.75, F0 + 4.35, D / 2 - 0.1, t0.s); da2.rotation.z = -0.55;
-  for (let i = 0; i < 3; i++) box(4.2 - i * 0.7, 0.22, 1.1, stoneDarkM, 0, 0.32 - i * 0.2, D / 2 + 0.9 + i * 0.35, t0.s);
-
-  // 扶壁
-  const bt = P('buttress', gF0);
-  const btM = extM(0xffffff, { map: stoneTex, rough: 0.95 });
-  function buttress(x, z) {
-    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = Math.atan2(x, z); bt.add(g);
-    box(1.5, 2.4, 1.7, btM, 0, 1.2, 0.5, g);
-    box(1.15, 2.2, 1.3, btM, 0, 3.3, 0.15, g);
-    const tp = box(0.95, 3.2, 1.0, btM, 0, 5.2, -0.35, g); tp.rotation.x = 0.22;
-    box(1.05, 0.55, 1.05, btM, 0, 6.95, -0.72, g);
-  }
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) buttress(sx * 6.1, sz * 6.1);
-  buttress(0, -6.4); buttress(6.4, 0); buttress(-6.4, 0); buttress(-4, 6.4); buttress(4, 6.4);
-
-  // 外墙蜡油（底层）
-  function waxCluster(x, y, z, ry, parent) {
-    const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; parent.add(g);
-    const wm = extM(0xe6d9bd, { rough: 0.5 });
-    box(3.8, 0.4, 0.28, wm, 0, 0.15, 0.03, g).castShadow = false;
-    const n = 5 + ((rnd() * 3) | 0);
-    for (let i = 0; i < n; i++) {
-      const wdt = 0.3 + rnd() * 0.35, h = 0.8 + rnd() * 1.8, px = (rnd() - 0.5) * 3.4;
-      sph(wdt, wm, px, -h / 2 + 0.1, 0.06, g, 1, h / (wdt * 2) + 0.6, 0.55).castShadow = false;
-      sph(wdt * 1.2, wm, px, 0.12, 0.06, g, 1, 0.7, 0.55).castShadow = false;
-    }
-  }
-  waxCluster(-3.6, F0 + 3.7, D / 2 + 0.05, 0, t0.s);
-  waxCluster(3.6, F0 + 3.7, D / 2 + 0.05, 0, t0.s);
-  waxCluster(0, F0 + 3.7, -D / 2 - 0.05, Math.PI, t0.n);
-  waxCluster(W / 2 + 0.05, F0 + 3.7, 0, Math.PI / 2, t0.e);
-  waxCluster(-W / 2 - 0.05, F0 + 3.7, 0, -Math.PI / 2, t0.ww);
-
-  // 屋顶露台
-  const tr = P('terrace', gRoof);
-  box(W + 1.4, 0.5, D + 1.4, stoneDarkM, 0, ROOF + 0.25, 0, tr);
-  const parM = M(0x4a4e55, { map: stoneTex, rough: 0.95 });
-  const PH = 1.0, py = ROOF + 0.5 + PH / 2, pe = (W + 1.4) / 2 - 0.18;
-  box(W + 1.4, PH, 0.36, parM, 0, py, pe, tr);
-  box(W + 1.4, PH, 0.36, parM, 0, py, -pe, tr);
-  box(0.36, PH, D + 1.4, parM, pe, py, 0, tr);
-  box(0.36, PH, D + 1.4, parM, -pe, py, 0, tr);
-  for (let i = -5; i <= 5; i++) {
-    box(0.5, 0.45, 0.4, parM, i * 1.25, py + PH / 2 + 0.2, pe, tr);
-    box(0.5, 0.45, 0.4, parM, i * 1.25, py + PH / 2 + 0.2, -pe, tr);
-    box(0.4, 0.45, 0.5, parM, pe, py + PH / 2 + 0.2, i * 1.25, tr);
-    box(0.4, 0.45, 0.5, parM, -pe, py + PH / 2 + 0.2, i * 1.25, tr);
+  // 蜡滴：底层外墙
+  const wx = P('waxwall', gL1);
+  const dripSpots = [[-5, 3.4, 7.22], [-1.5, 2.6, 7.22], [3.5, 3.8, 7.22], [6.5, 2.2, 7.22],
+                     [-7, 3.0, -7.22], [2, 3.6, -7.22], [9.22, 2.8, 3], [9.22, 3.4, -2.5], [-9.22, 3.2, 0.5]];
+  for (const [x, y, z] of dripSpots) {
+    sph(0.4, waxM, x, y, z, wx, 1, 1.5, 0.45);
+    box(0.2, 1.4, 0.1, waxM, x + 0.12, y - 0.9, z, wx);
+    sph(0.55, waxM, x - 0.2, y - 1.7, z, wx, 1.2, 0.7, 0.4);
   }
 
-  // 石像鬼
-  const gg = P('gargoyle', gRoof);
-  function gargoyle(x, z) {
-    const g = new THREE.Group(); g.position.set(x, ROOF + 0.5, z);
-    g.rotation.y = Math.atan2(x, z); gg.add(g);
-    const sm = M(0x3f434b, { rough: 0.95 });
-    box(0.35, 0.55, 0.35, sm, 0, 0.28, 0, g);
-    box(0.55, 0.75, 0.95, sm, 0, 1.05, 0, g);
-    box(0.42, 0.42, 0.55, sm, 0, 1.62, 0.28, g);
-    box(0.26, 0.2, 0.4, sm, 0, 1.52, 0.65, g);
-    const w1 = box(0.09, 0.95, 0.75, sm, -0.38, 1.5, -0.25, g); w1.rotation.z = 0.55; w1.rotation.x = -0.3;
-    const w2 = box(0.09, 0.95, 0.75, sm, 0.38, 1.5, -0.25, g); w2.rotation.z = -0.55; w2.rotation.x = -0.3;
-    const t = box(0.16, 0.16, 0.8, sm, 0, 0.9, -0.7, g); t.rotation.x = 0.5;
-  }
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) gargoyle(sx * 5.4, sz * 5.4);
+  // 尖拱窗：L1小 / L2中 / L3高 / L4大
+  for (const x of [-6, -3, 3, 6]) pointedWin(1.1, 1.6, x, 2.6, 7.02, 0, W1.gs, false);
+  for (const x of [-6, -3, 3, 6]) pointedWin(1.1, 1.6, x, 2.6, -7.02, Math.PI, W1.gn, false);
+  pointedWin(1.0, 1.5, -9.02, 2.6, 2, -Math.PI / 2, W1.gw, false);
+  pointedWin(1.0, 1.5, 9.02, 2.6, -2, Math.PI / 2, W1.ge, false);
+  for (const x of [-6.5, -3.5, 3.5, 6.5]) pointedWin(1.2, 2.0, x, 7.4, 7.02, 0, W2.gs, true);
+  for (const x of [-6.5, -3.5, 3.5, 6.5]) pointedWin(1.2, 2.0, x, 7.4, -7.02, Math.PI, W2.gn, true);
+  pointedWin(1.1, 1.9, -9.02, 7.4, 0, -Math.PI / 2, W2.gw, true);
+  pointedWin(1.1, 1.9, 9.02, 7.4, 0, Math.PI / 2, W2.ge, true);
+  for (const x of [-7, -4, 0, 4, 7]) pointedWin(1.4, 2.8, x, 13.2, 7.02, 0, W3.gs, true);
+  for (const x of [-7, -4, 0, 4, 7]) pointedWin(1.4, 2.8, x, 13.2, -7.02, Math.PI, W3.gn, true);
+  for (const z of [-4, 0, 4]) pointedWin(1.3, 2.6, -9.02, 13.2, z, -Math.PI / 2, W3.gw, true);
+  for (const z of [-4, 0, 4]) pointedWin(1.3, 2.6, 9.02, 13.2, z, Math.PI / 2, W3.ge, true);
+})();
+
+/* ============ 屋顶露台与尖塔 ============ */
+(function buildRoof() {
+  // 东露台 (x 9..13)
+  const te = P('terrace-e', gL3);
+  box(4.4, 0.35, 14.4, darkStoneM, 11, 16.15, 0, te);
+  parapet(9, -7, 9, 7, 16.3, te); parapet(13, -7, 13, 7, 16.3, te);
+  parapet(9, -7, 13, -7, 16.3, te); parapet(9, 7, 13, 7, 16.3, te);
+  // 西露台
+  const tw = P('terrace-w', gL3);
+  box(4.4, 0.35, 14.4, darkStoneM, -11, 16.15, 0, tw);
+  parapet(-9, -7, -9, 7, 16.3, tw); parapet(-13, -7, -13, 7, 16.3, tw);
+  parapet(-9, -7, -13, -7, 16.3, tw); parapet(-9, 7, -13, 7, 16.3, tw);
+  // L4 周边露台女儿墙（L3 屋顶边缘）
+  parapet(-9, -7, 9, -7, 16.3, te); parapet(-9, 7, 9, 7, 16.3, te);
+
+  // 石像鬼 ×4
+  const gg = P('gargoyle', gL3);
+  gargoyle(12.9, 17.3, -5, Math.PI / 2, gg);
+  gargoyle(12.9, 17.3, 5, Math.PI / 2, gg);
+  gargoyle(-12.9, 17.3, -5, -Math.PI / 2, gg);
+  gargoyle(-12.9, 17.3, 5, -Math.PI / 2, gg);
 
   // 尖塔
   const sp = P('spire', gRoof);
-  box(4.4, 3.0, 4.4, stoneDarkM, 0, ROOF + 0.5 + 1.5, 0, sp);
-  box(5.0, 0.5, 5.0, trimM, 0, ROOF + 0.5 + 3.2, 0, sp);
-  cyl(0.12, 2.6, 6.2, M(0x3f434b, { rough: 0.9 }), 0, ROOF + 0.5 + 3.4 + 3.1, 0, sp, 8);
-  sph(0.3, goldM, 0, ROOF + 0.5 + 3.4 + 6.2 + 0.25, 0, sp);
-  cyl(0.05, 0.05, 1.2, goldM, 0, ROOF + 0.5 + 3.4 + 6.2 + 0.9, 0, sp, 8);
-})();
+  box(7, 1.2, 7, stoneFrameM, 0, 21.6, -1, sp);
+  cyl(0.2, 3.4, 7.5, M(0x3f3d38, { rough: 0.85 }), 0, 25.5, -1, sp, 8);
+  sph(0.45, goldM, 0, 29.6, -1, sp);
+  cone(0.25, 0.9, goldM, 0, 30.2, -1, sp, 8);
+  // 塔身小尖拱窗
+  pointedWin(0.9, 1.6, 0, 23.5, 2.55, 0, sp, true);
 
-/* ============ 底层室内 ============ */
-const floorM = M(0xffffff, { map: floorTex, rough: 0.95 });
-const darkWoodM = M(0x3d2a18, { rough: 0.85 });
-const waxGlowM = M(0xeadfc2, { rough: 0.45, emissive: 0x6a4a22, ei: 0.35 });
+  // 猎人戒指小塔（西露台）
+  const tl = P('tower-ladder', gRoof);
+  cyl(1.6, 1.8, 5.5, stoneM, -11, 19, -3, tl, 10);
+  cyl(1.9, 1.9, 0.4, stoneFrameM, -11, 21.9, -3, tl, 10);
+  cone(0.2, 2.2, stoneFrameM, -11, 23, -3, tl, 8);
+  for (let i = 0; i < 9; i++)  // 木梯
+    box(0.7, 0.08, 0.12, woodM, -11, 16.6 + i * 0.55, -1.15 + i * 0.02, tl);
+  box(0.08, 5.2, 0.1, woodM, -11.36, 19, -1.15, tl);
+  box(0.08, 5.2, 0.1, woodM, -10.64, 19, -1.15, tl);
+  const ring = torus(0.16, 0.05, goldM, -11, 22.3, -3, tl, Math.PI / 2); // 猎人戒指
+  ring.castShadow = false;
 
-(function buildF0() {
-  // 地面
-  const hall = P('hall', gF0);
-  box(10.8, 0.12, 10.8, floorM, 0, F0 + 0.06, 0, hall);
-
-  // 石柱
-  const colM = M(0x565b63, { map: stoneTex, rough: 0.95 });
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-    const cx = sx * 3.4, cz = sz * 3.4;
-    box(1.3, 0.35, 1.3, colM, cx, F0 + 0.28, cz, hall);
-    cyl(0.42, 0.5, H0 - 0.7, colM, cx, F0 + 0.45 + (H0 - 0.7) / 2, cz, hall, 12);
-    box(1.25, 0.35, 1.25, colM, cx, F0 + H0 - 0.28, cz, hall);
-  }
-  // 墙面挂毯
-  const banM = M(0xffffff, { map: bannerTex, rough: 0.9 });
-  for (const bx of [-3.2, 3.2]) {
-    const b1 = box(1.5, 3.4, 0.08, banM, bx, F0 + 2.6, -5.32, hall); b1.castShadow = false;
-    box(1.7, 0.12, 0.12, darkWoodM, bx, F0 + 4.35, -5.3, hall);
-  }
-
-  // 蜡池
-  const wp = P('waxpool', gF0);
-  cyl(2.45, 2.55, 0.55, stoneDarkM, -3.2, F0 + 0.27, 0.5, wp, 24);
-  const waxTop = cyl(2.1, 2.1, 0.16, waxGlowM, -3.2, F0 + 0.52, 0.5, wp, 24);
-  waxTop.castShadow = false;
+  // 横梁牢笼区（东露台破洞）
+  const bc = P('beams-cage', gRoof);
+  box(3.2, 0.3, 3.2, darkStoneM, 11, 16.2, 5, bc);   // 破洞边缘
+  const hole = box(1.8, 0.34, 1.8, M(0x0a0908), 11, 16.2, 5, bc); hole.castShadow = false;
+  for (let i = 0; i < 4; i++)
+    box(3.0, 0.18, 0.24, darkWoodM, 11, 15.2 - i * 0.55, 4 + i * 0.35, bc);  // 横梁
+  const cageM = ironM;
   for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + 0.3;
-    sph(0.22 + rnd() * 0.15, waxM, -3.2 + Math.cos(a) * 2.35, F0 + 0.62, 0.5 + Math.sin(a) * 2.35, wp, 1, 0.6, 1).castShadow = false;
+    const a = i / 8 * Math.PI * 2;
+    box(0.07, 1.4, 0.07, cageM, 11 + Math.cos(a) * 0.55, 13.6, 4.6 + Math.sin(a) * 0.55, bc);
   }
-  // 浸蜡学者
-  function scholar(x, z, ry) {
-    const g = new THREE.Group(); g.position.set(x, F0, z); g.rotation.y = ry; wp.add(g);
-    const robe = M(0x3a3f4a, { rough: 0.95 });
-    cyl(0.13, 0.38, 1.35, robe, 0, 0.68, 0, g, 10);
-    cyl(0.26, 0.3, 0.2, waxM, 0, 1.32, 0, g, 10);
-    sph(0.21, waxM, 0, 1.5, 0, g).castShadow = false;
-    box(0.1, 0.7, 0.1, robe, 0.3, 0.75, 0.1, g).rotation.z = -0.4;
-  }
-  scholar(-1.1, 2.3, -2.2); scholar(-5.2, -0.6, 1.4); scholar(-3.5, 3.4, 3.1);
-
-  // 烛台
-  const cd = P('candle', gF0);
-  function candel(x, z, hgt) {
-    const g = new THREE.Group(); g.position.set(x, F0, z); cd.add(g);
-    const im = M(0x2b2b30, { rough: 0.55, metal: 0.55 });
-    cyl(0.28, 0.34, 0.14, im, 0, 0.07, 0, g);
-    cyl(0.055, 0.075, hgt, im, 0, hgt / 2, 0, g);
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2 + 0.4;
-      const ax = Math.cos(a) * 0.5, az = Math.sin(a) * 0.5;
-      const arm = box(0.55, 0.05, 0.05, im, ax / 2, hgt - 0.12, az / 2, g); arm.rotation.y = -a;
-      cyl(0.05, 0.05, 0.4, waxM, ax, hgt + 0.05, az, g, 8);
-      const f = sph(0.07, flameM, ax, hgt + 0.32, az, g); f.castShadow = false;
-    }
-    cyl(0.06, 0.06, 0.5, waxM, 0, hgt + 0.1, 0, g, 8);
-    const f0 = sph(0.08, flameM, 0, hgt + 0.42, 0, g); f0.castShadow = false;
-  }
-  candel(3.6, 3.0, 2.3); candel(3.6, -3.0, 2.6); candel(-4.9, 3.8, 2.1);
-
-  // 吊灯链条
-  const ch = P('chandelier', gF0);
-  (function chandel(x, z) {
-    const g = new THREE.Group(); ch.add(g);
-    const im = M(0x2b2b30, { rough: 0.55, metal: 0.55 });
-    const topY = F0 + H0 - 0.4;
-    cyl(0.035, 0.035, 2.4, im, x, topY - 1.2, z, g);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.08, 10, 28), im);
-    ring.rotation.x = Math.PI / 2; ring.position.set(x, topY - 2.5, z);
-    ring.castShadow = true; g.add(ring); tagPart(ring, g);
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
-      const cx = x + Math.cos(a) * 1.15, cz = z + Math.sin(a) * 1.15;
-      cyl(0.05, 0.05, 0.45, waxM, cx, topY - 2.3, cz, g, 8);
-      const f = sph(0.07, flameM, cx, topY - 2.0, cz, g); f.castShadow = false;
-      const ch2 = cyl(0.015, 0.015, 0.5, im, x + Math.cos(a) * 0.55, topY - 1.35, z + Math.sin(a) * 0.55, g);
-      ch2.rotation.z = Math.cos(a) * 0.5; ch2.rotation.x = -Math.sin(a) * 0.5;
-    }
-    const bowl = cyl(0.5, 0.3, 0.4, im, x, topY - 2.75, z, g, 12);
-  })(1.8, -0.5);
-
-  // 石阶（底层 -> 中层）
-  const st = P('stair0', gF0);
-  const stepM = M(0x565b63, { map: stoneTex, rough: 0.95 });
-  const N = 16, rise = (F1 - F0) / N, run = 4.0 / N;
-  for (let i = 0; i < N; i++)
-    box(3.0, rise + 0.02, run + 0.03, stepM, 0, F0 + (i + 1) * rise - rise / 2, -0.5 - run * (i + 0.5), st);
-  for (const sx of [-1.62, 1.62]) {
-    const rail = box(0.12, 0.12, 4.6, stoneDarkM, sx, F0 + 3.4, -2.5, st);
-    rail.rotation.x = Math.atan2(F1 - F0, 4.0);
-    for (let i = 0; i < 4; i++)
-      box(0.1, 1.1, 0.1, stoneDarkM, sx, F0 + 0.8 + i * 1.45, -1.1 - i * 1.05, st);
-  }
+  torus(0.55, 0.06, cageM, 11, 14.35, 4.6, bc, 0);
+  torus(0.55, 0.06, cageM, 11, 12.95, 4.6, bc, 0);
+  cyl(0.03, 0.03, 2.2, cageM, 11, 15.6, 4.6, bc);   // 悬挂铁链
 })();
 
-/* ============ 中层 ============ */
-function bookshelf(w, h, d, x, y, z, ry, parent) {
-  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; parent.add(g);
-  const sm = M(0x4a3524, { rough: 0.85 });
-  box(w, h, d, sm, 0, h / 2, 0, g);
-  box(w + 0.15, 0.18, d + 0.1, sm, 0, h + 0.05, 0, g);   // 顶饰
-  const cols = [0x7a2e2e, 0x2e4a7a, 0x2e6e4a, 0x8a6a2e, 0x5a2e7a, 0x9a5a2e, 0x3e6e6e];
-  const rows = Math.max(2, Math.floor(h / 0.95));
-  for (let r = 0; r < rows; r++) {
-    const sy = 0.45 + r * 0.95;
-    if (sy > h - 0.3) break;
-    box(w - 0.12, 0.06, d - 0.08, sm, 0, sy, 0, g);
-    let bx = -w / 2 + 0.14;
-    while (bx < w / 2 - 0.2) {
-      const bw = 0.09 + rnd() * 0.08, bh = 0.5 + rnd() * 0.28;
-      box(bw, bh, d - 0.22, M(cols[(rnd() * 7) | 0], { rough: 0.9 }), bx + bw / 2, sy + 0.03 + bh / 2, 0, g);
-      bx += bw + 0.015;
-      if (rnd() > 0.92) bx += 0.12;  // 偶尔空一格
+/* ============ L1 入口大厅 ============ */
+(function buildL1() {
+  // 双开大门（半开）
+  const gd = P('gate-double', gL1);
+  box(3.6, 4.4, 0.5, stoneFrameM, 0, 2.5, 7.0, gd);
+  const doorM = M(0xffffff, { map: woodTex, rough: 0.8 });
+  const d1 = box(1.6, 4.0, 0.18, doorM, -0.85, 2.3, 7.0, gd); d1.rotation.y = 0.35;
+  const d2 = box(1.6, 4.0, 0.18, doorM, 0.85, 2.3, 7.0, gd); d2.rotation.y = -0.12;
+  for (const yy of [1.4, 2.4, 3.4]) {
+    box(3.2, 0.14, 0.06, ironM, 0, yy, 7.12, gd);
+  }
+  box(0.12, 0.3, 0.12, goldM, -0.15, 2.3, 7.15, gd);
+
+  // 大厅：石柱/挂毯/烛台/纸页
+  const he = P('hall-entry', gL1);
+  for (const sx of [-4, 4]) for (const sz of [-3, 3]) {
+    box(0.9, 4.7, 0.9, stoneFrameM, sx, 2.65, sz, he);
+    box(1.3, 0.3, 1.3, stoneFrameM, sx, 0.45, sz, he);
+    box(1.3, 0.3, 1.3, stoneFrameM, sx, 4.85, sz, he);
+  }
+  const banM = M(0x5a1e2a, { rough: 0.95 });
+  for (const x of [-6.5, -2.5, 2.5, 6.5]) {
+    box(1.4, 3.0, 0.08, banM, x, 2.8, -6.75, he);
+    box(1.4, 0.3, 0.1, goldM, x, 4.35, -6.75, he);
+  }
+  for (const [x, z] of [[-6, 5], [6, 5], [-6, -5], [6, -5]]) {   // 烛台
+    cyl(0.06, 0.12, 1.6, ironM, x, 1.1, z, he);
+    torus(0.35, 0.05, ironM, x, 1.95, z, he, Math.PI / 2);
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2;
+      cyl(0.05, 0.05, 0.3, waxPureM, x + Math.cos(a) * 0.35, 2.05, z + Math.sin(a) * 0.35, he, 6).castShadow = false;
+      sph(0.05, M(0xffb45e, { emissive: 0xff9a3e, ei: 2.5 }), x + Math.cos(a) * 0.35, 2.25, z + Math.sin(a) * 0.35, he, 1, 1.4, 1).castShadow = false;
     }
+  }
+  for (let i = 0; i < 14; i++)   // 散落书页
+    box(0.4, 0.015, 0.55, paperM, -8 + rnd() * 16, 0.33, -6 + rnd() * 12, he, rnd() * 3).castShadow = false;
+
+  // 一层石梯（北端上二层）
+  const s1 = P('stair-l1', gL1);
+  stairRun(4, 15, 0.31, 0.32, 0, 0.3, -1.8, -1, s1);
+  box(0.15, 1.0, 5.2, stoneFrameM, -2.15, 2.6, -4.2, s1);
+  box(0.15, 1.0, 5.2, stoneFrameM, 2.15, 2.6, -4.2, s1);
+})();
+
+/* ============ L2 蜡池厅 ============ */
+(function buildL2() {
+  const FY = 5.3;
+  // 蜡池
+  const wp = P('waxpool', gL2);
+  cyl(2.3, 2.5, 1.0, stoneFrameM, 5.5, FY + 0.5, -2, wp, 18);
+  const waxTop = cyl(2.0, 2.0, 0.18, waxPureM, 5.5, FY + 0.95, -2, wp, 18);
+  waxTop.castShadow = false;
+  for (let i = 0; i < 8; i++) {   // 凝固蜡块
+    const a = rnd() * Math.PI * 2, r = 0.6 + rnd() * 1.1;
+    sph(0.22 + rnd() * 0.2, waxPureM, 5.5 + Math.cos(a) * r, FY + 1.05, -2 + Math.sin(a) * r, wp, 1, 0.6, 1);
+  }
+  // 浸蜡学者剪影（俯身）
+  const sm = M(0xe4d9c0, { rough: 0.7 });
+  const scholar = new THREE.Group(); scholar.position.set(5.5, FY, -0.2); scholar.rotation.x = 0.5; wp.add(scholar);
+  cone(0.42, 1.3, sm, 0, 0.65, 0, scholar, 10);
+  sph(0.2, sm, 0, 1.4, 0.1, scholar);
+  const waxLight = new THREE.PointLight(0xffc46a, 40, 13, 2);
+  waxLight.position.set(5.5, FY + 2.2, -2); wp.add(waxLight);
+  // 小蜡烛一圈
+  for (let i = 0; i < 6; i++) {
+    const a = i / 6 * Math.PI * 2;
+    cyl(0.06, 0.06, 0.35, waxPureM, 5.5 + Math.cos(a) * 2.7, FY + 0.35, -2 + Math.sin(a) * 2.7, wp, 6).castShadow = false;
+    sph(0.05, M(0xffb45e, { emissive: 0xff9a3e, ei: 2.5 }), 5.5 + Math.cos(a) * 2.7, FY + 0.6, -2 + Math.sin(a) * 2.7, wp, 1, 1.4, 1).castShadow = false;
+  }
+
+  // 祭坛（北端）
+  const al = P('altar', gL2);
+  box(6, 0.5, 3, darkStoneM, 0, FY + 0.25, -5.2, al);
+  box(2.4, 1.1, 1.0, stoneFrameM, 0, FY + 1.05, -5.4, al);
+  box(2.8, 0.18, 1.3, darkStoneM, 0, FY + 1.68, -5.4, al);
+  for (const x of [-1, -0.5, 0, 0.5, 1]) {
+    cyl(0.07, 0.07, 0.5 + (x === 0 ? 0.25 : 0), waxPureM, x, FY + 2.0, -5.4, al, 6).castShadow = false;
+    sph(0.055, M(0xffb45e, { emissive: 0xff9a3e, ei: 2.5 }), x, FY + 2.32, -5.4, al, 1, 1.4, 1).castShadow = false;
+  }
+  const banM = M(0x5a1e2a, { rough: 0.95 });
+  box(1.6, 3.2, 0.1, banM, -3.2, FY + 2.2, -6.75, al);
+  box(1.6, 3.2, 0.1, banM, 3.2, FY + 2.2, -6.75, al);
+
+  // 蜡覆祭司 ×3
+  const pr = P('priest-wax', gL2);
+  function priest(x, z, ry) {
+    const g = new THREE.Group(); g.position.set(x, FY, z); g.rotation.y = ry; pr.add(g);
+    const wm = M(0xded2b8, { map: waxTex, rough: 0.65 });
+    cone(0.5, 1.7, wm, 0, 0.85, 0, g, 10);
+    sph(0.22, wm, 0, 1.8, 0, g);
+    box(0.5, 0.18, 0.5, wm, 0, 1.62, 0, g);   // 蜡帽檐
+    const st = cyl(0.04, 0.04, 1.9, darkWoodM, 0.4, 0.95, 0.1, g, 6); st.rotation.z = 0.12;
+    sph(0.3, waxPureM, -0.3, 0.25, 0.25, g, 1, 0.6, 1);   // 身上蜡块
+  }
+  priest(-4.5, -1, 0.6); priest(-2.8, 1.8, -0.4); priest(-5.6, 3.2, 1.2);
+
+  // 书架机关拉杆（西墙）
+  const lv = P('lever-shelf', gL2);
+  const shelfM = M(0xffffff, { map: woodTex, rough: 0.85 });
+  box(0.7, 3.4, 2.6, shelfM, -8.4, FY + 1.7, 2, lv);       // 滑开的书架（露出密室）
+  box(0.5, 2.6, 1.8, M(0x0a0908), -8.55, FY + 1.3, 2, lv);  // 密室黑口
+  const ch = box(0.9, 0.7, 0.7, darkWoodM, -8.3, FY + 0.35, 2, lv); ch.rotation.y = 0.3;  // 宝箱
+  box(0.95, 0.12, 0.75, goldM, -8.3, FY + 0.72, 2, lv);
+  box(0.12, 1.1, 0.12, ironM, -7.6, FY + 0.85, 3.6, lv);    // 拉杆
+  const lvh = sph(0.12, woodM, -7.6, FY + 1.45, 3.6, lv); lvh.scale.set(1, 1.3, 1);
+  box(0.5, 0.35, 0.1, M(0xcbb98f, { emissive: 0x6a5a30, ei: 0.4 }), -8.45, FY + 2.6, 3.35, lv); // 提示牌
+
+  // 二层石梯（东北上三层）
+  const s2 = P('stair-l2', gL2);
+  stairRun(3.2, 15, 0.31, 0.32, 6.5, FY, -1.5, -1, s2);
+
+  // 快捷升降机（东侧井道 L1<->L3）
+  const lf = P('lift', gL2);
+  wallSeg(6.8, 2.8, 6.8, 6.2, 0, 16, 0.3, darkStoneM, lf);
+  wallSeg(8.8, 2.8, 8.8, 6.2, 0, 16, 0.3, darkStoneM, lf);
+  wallSeg(6.8, 6.2, 8.8, 6.2, 0, 16, 0.3, darkStoneM, lf);
+  box(1.9, 0.25, 3.0, woodM, 7.8, FY + 0.4, 4.5, lf);       // 平台
+  for (const sx of [7.1, 8.5]) for (const sz of [3.2, 5.8])
+    cyl(0.035, 0.035, 10.5, ironM, sx, FY + 5.5, sz, lf, 6);
+  box(0.5, 1.2, 0.5, darkStoneM, 7.8, FY + 1.0, 6.35, lf);   // 拉闸
+  const lvr = box(0.08, 0.9, 0.08, ironM, 7.8, FY + 1.9, 6.35, lf); lvr.rotation.x = 0.5;
+})();
+
+/* ============ L3 藏书长廊 ============ */
+const bookCols = [0x8a2f2a, 0x2a4a7a, 0x2a6a4a, 0xb08a3a, 0x5a3a6a, 0xa06a2a, 0x3a7a8a, 0x777755, 0x943232, 0x2a5a5a];
+const shelfWoodM = M(0x4a2f1a, { map: woodTex, rough: 0.85 });
+function bookRow(w, y, z, parent, x) {
+  let bx = x - w / 2;
+  const end = x + w / 2;
+  while (bx < end - 0.06) {
+    const bw = 0.06 + rnd() * 0.07, bh = 0.3 + rnd() * 0.24;
+    if (rnd() < 0.09) { bx += 0.16; continue; }
+    const b = box(bw, bh, 0.3, M(bookCols[(rnd() * bookCols.length) | 0], { rough: 0.85 }), bx + bw / 2, y + bh / 2, z, parent);
+    if (rnd() < 0.12) b.rotation.z = 0.16;
+    bx += bw + 0.012;
+  }
+}
+function bookshelf(w, h, x, y, z, ry, parent) {
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; parent.add(g);
+  box(0.14, h, 0.6, shelfWoodM, -w / 2, h / 2, 0, g);
+  box(0.14, h, 0.6, shelfWoodM, w / 2, h / 2, 0, g);
+  box(w + 0.14, 0.16, 0.6, shelfWoodM, 0, h - 0.08, 0, g);
+  box(w + 0.14, 0.16, 0.6, shelfWoodM, 0, 0.08, 0, g);
+  box(w, h, 0.1, shelfWoodM, 0, h / 2, -0.28, g);
+  const n = 4;
+  for (let i = 0; i < n; i++) {
+    const sy = 0.16 + (h - 0.32) / n * i;
+    box(w, 0.08, 0.55, shelfWoodM, 0, sy, 0, g);
+    bookRow(w - 0.24, sy + 0.04, 0.03, g, 0);
   }
   return g;
 }
-function railing(x1, z1, x2, z2, y0, parent) {
-  const len = Math.hypot(x2 - x1, z2 - z1);
-  const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
-  const rm = M(0x2b2b30, { rough: 0.55, metal: 0.55 });
-  const horiz = Math.abs(x2 - x1) > Math.abs(z2 - z1);
-  if (horiz) box(len, 0.07, 0.07, rm, cx, y0 + 0.95, cz, parent);
-  else box(0.07, 0.07, len, rm, cx, y0 + 0.95, cz, parent);
-  const n = Math.max(2, Math.round(len / 1.1));
-  for (let i = 0; i <= n; i++) {
-    const px = x1 + ((x2 - x1) * i) / n, pz = z1 + ((z2 - z1) * i) / n;
-    box(0.06, 0.95, 0.06, rm, px, y0 + 0.48, pz, parent);
+function spiralStair(cx, cz, r, y0, y1, parent) {
+  const n = 30, totalA = Math.PI * 2 * 1.8;
+  cyl(0.4, 0.5, y1 - y0, stoneFrameM, cx, (y0 + y1) / 2, cz, parent, 10);
+  for (let i = 0; i < n; i++) {
+    const a = i / n * totalA;
+    const y = y0 + (y1 - y0) * i / (n - 1);
+    const step = box(1.6, 0.22, 0.75, darkStoneM, cx + Math.cos(a) * r, y, cz + Math.sin(a) * r, parent);
+    step.rotation.y = -a;
+    if (i % 3 === 0) box(0.09, 1.05, 0.09, ironM, cx + Math.cos(a) * (r + 0.75), y + 0.6, cz + Math.sin(a) * (r + 0.75), parent);
+  }
+  for (let i = 0; i < n - 2; i += 2) {
+    const a0 = i / n * totalA, a1 = (i + 2) / n * totalA;
+    const ys0 = y0 + (y1 - y0) * i / (n - 1) + 1.1, ys1 = y0 + (y1 - y0) * (i + 2) / (n - 1) + 1.1;
+    const x0 = cx + Math.cos(a0) * (r + 0.75), z0 = cz + Math.sin(a0) * (r + 0.75);
+    const x1 = cx + Math.cos(a1) * (r + 0.75), z1 = cz + Math.sin(a1) * (r + 0.75);
+    const len = Math.hypot(x1 - x0, z1 - z0, ys1 - ys0);
+    const rail = box(0.09, 0.09, len, ironM, (x0 + x1) / 2, (ys0 + ys1) / 2, (z0 + z1) / 2, parent);
+    rail.lookAt(x1, ys1, z1);
+  }
+}
+function curseHandCluster(x, y, z, ry, parent, n = 4) {
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; parent.add(g);
+  const m = M(0x0d0a18, { rough: 0.55, emissive: 0x3a2060, ei: 0.7, transparent: true, opacity: 0.94 });
+  for (let i = 0; i < n; i++) {
+    const px = (i - (n - 1) / 2) * 0.55 + (rnd() - 0.5) * 0.2;
+    const len = 1.0 + rnd() * 0.8;
+    const arm = cone(0.17, len, m, px, len / 2, 0, g, 7);
+    arm.rotation.x = -0.45 - rnd() * 0.35;
+    for (let f = 0; f < 3; f++) {
+      const fg = cone(0.05, 0.42, m, px + (f - 1) * 0.13, len * 0.82, 0.3, g, 5);
+      fg.rotation.x = -0.95;
+    }
+  }
+}
+function chandelier(x, y, z, parent) {
+  const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g);
+  cyl(0.045, 0.045, 2.4, ironM, 0, 1.5, 0, g, 6);
+  torus(1.15, 0.08, ironM, 0, 0, 0, g, Math.PI / 2);
+  for (let i = 0; i < 8; i++) {
+    const a = i / 8 * Math.PI * 2;
+    const cx = Math.cos(a) * 1.15, cz = Math.sin(a) * 1.15;
+    cyl(0.055, 0.055, 0.32, waxPureM, cx, 0.2, cz, g, 6).castShadow = false;
+    sph(0.055, M(0xffb45e, { emissive: 0xff9a3e, ei: 2.8 }), cx, 0.42, cz, g, 1, 1.5, 1).castShadow = false;
   }
 }
 
-(function buildF1() {
-  // 楼板（中央天井 + 北侧楼梯口留洞）
-  const slabM = floorM;
-  const sy = F1 - 0.2;
-  box(12, 0.4, 3, slabM, 0, sy, 4.5, P('stacks', gMid));            // 南
-  box(12, 0.4, 1.2, slabM, 0, sy, -5.4, P('stacks', gMid));        // 北沿
-  box(4.3, 0.4, 1.8, slabM, -3.85, sy, -3.9, P('stacks', gMid));   // 楼梯口西
-  box(4.3, 0.4, 1.8, slabM, 3.85, sy, -3.9, P('stacks', gMid));    // 楼梯口东
-  box(3, 0.4, 6, slabM, -4.5, sy, 0, P('stacks', gMid));           // 天井西
-  box(3, 0.4, 6, slabM, 4.5, sy, 0, P('stacks', gMid));           // 天井东
+(function buildL3() {
+  const FY = 10.3;
+  const gal = P('gallery', gL3);
+  for (let i = 0; i < 16; i++)
+    box(0.4, 0.015, 0.55, paperM, -8 + rnd() * 16, FY + 0.03, -6 + rnd() * 12, gal, rnd() * 3).castShadow = false;
+  // 中央大吊灯链条座
+  box(2.2, 0.4, 2.2, stoneFrameM, 0, 15.9, 0, gal);
 
-  // 天井护栏（北侧留楼梯缺口）
-  const st = P('stacks', gMid);
-  railing(-3, 3, 3, 3, F1, st);
-  railing(-3, -3, -3, 3, F1, st);
-  railing(3, -3, 3, 3, F1, st);
-  railing(-3, -3, -1.7, -3, F1, st);
-  railing(1.7, -3, 3, -3, F1, st);
+  // 高大书架群
+  const sh = P('shelves', gL3);
+  for (const z of [-4, 0, 4]) {
+    bookshelf(3.2, 4.6, -8.2, FY, z, Math.PI / 2, sh);
+    bookshelf(3.2, 4.6, 8.2, FY, z, -Math.PI / 2, sh);
+  }
+  bookshelf(3.2, 4.6, -2, FY, -6.2, 0, sh);
+  bookshelf(3.2, 4.6, 2, FY, -6.2, 0, sh);
 
-  // 环形书架（沿墙）
-  for (const bx of [-3.8, 0, 3.8]) bookshelf(2.4, 3.8, 0.7, bx, F1, -5.0, 0, st);
-  for (const bx of [-3.8, 0, 3.8]) bookshelf(2.4, 3.8, 0.7, bx, F1, 5.0, Math.PI, st);
-  for (const bz of [-1.8, 1.8]) bookshelf(2.4, 3.8, 0.7, 5.0, F1, bz, -Math.PI / 2, st);
-  for (const bz of [-1.8, 1.8]) bookshelf(2.4, 3.8, 0.7, -5.0, F1, bz, Math.PI / 2, st);
-  // 梯子
-  for (const bx of [-2.6, 2.6]) {
-    const lad = box(0.5, 3.6, 0.08, darkWoodM, bx, F1 + 1.8, -4.6, st);
-    lad.rotation.x = 0.12;
+  // 滑动书架（北墙，露出密室）
+  const ss = P('shelf-slide', gL3);
+  const moved = bookshelf(2.6, 4.2, 5.8, FY, -6.2, 0, ss);
+  moved.position.x = 7.6;
+  box(1.8, 3.0, 0.6, M(0x0a0908), 5.6, FY + 1.5, -6.5, ss);
+  const ch2 = box(0.9, 0.7, 0.7, darkWoodM, 5.6, FY + 0.35, -6.2, ss); ch2.rotation.y = -0.25;
+  box(0.95, 0.12, 0.75, goldM, 5.6, FY + 0.72, -6.2, ss);
+  box(0.12, 1.1, 0.12, ironM, 3.4, FY + 0.85, -5.9, ss);
+  sph(0.12, shelfWoodM, 3.4, FY + 1.45, -5.9, ss);
+
+  // 诅咒之手 ×3 处
+  const chd = P('curse-hands', gL3);
+  curseHandCluster(-7.7, 11.2, 1.8, Math.PI / 2, chd, 5);
+  curseHandCluster(-2, 11.8, -6.5, 0, chd, 4);
+  curseHandCluster(7.7, 12.2, -2.6, -Math.PI / 2, chd, 4);
+
+  // 回廊阳台
+  const bc = P('balcony', gL3);
+  for (const sx of [-1, 1]) {
+    box(2.0, 0.25, 12.4, darkStoneM, sx * 7.8, 13.42, 0, bc);
+    for (let i = 0; i <= 6; i++) box(0.09, 1.0, 0.09, ironM, sx * 6.85, 14.05, -6 + i * 2, bc);
+    box(0.1, 0.09, 12.4, ironM, sx * 6.85, 14.58, 0, bc);
+    for (const z of [-5, 0, 5]) box(0.35, 3.0, 0.35, stoneFrameM, sx * 7.8, 11.9, z, bc);
   }
 
-  // 旋转书架楼梯（中央天井内，F1 -> F2）
-  const sp = P('spiral', gMid);
-  const spStone = M(0x565b63, { map: stoneTex, rough: 0.95 });
-  cyl(0.62, 0.72, H1 + 1.2, spStone, 0, F1 + (H1 + 1.2) / 2 - 0.3, 0, sp, 16);
-  const SN = 26, turns = 1.75;
-  for (let i = 0; i < SN; i++) {
-    const a = (i / SN) * turns * Math.PI * 2;
-    const y = F1 + 0.25 + ((i + 0.5) / SN) * (F2 - F1 - 0.3);
-    const px = Math.cos(a) * 1.55, pz = Math.sin(a) * 1.55;
-    const step = box(1.5, 0.16, 0.85, spStone, px, y, pz, sp);
-    step.rotation.y = -a + Math.PI / 2;
-  }
-  // 螺旋外侧小书架
-  for (let k = 0; k < 8; k++) {
-    const a = (k / 8) * Math.PI * 2 + 0.35;
-    const px = Math.cos(a) * 2.35, pz = Math.sin(a) * 2.35;
-    const y = F1 + 0.2 + (k / 8) * (F2 - F1 - 1.2);
-    bookshelf(1.1, 2.3, 0.5, px, y, pz, -a + Math.PI / 2, sp);
-  }
-  // 顶部吊链
-  cyl(0.04, 0.04, 3.0, M(0x2b2b30, { metal: 0.55, rough: 0.5 }), 0, F2 + 2.2, 0, sp);
+  // 吊灯 ×2
+  const cd = P('chandelier', gL3);
+  chandelier(0, 14.2, -3, cd);
+  chandelier(0, 14.2, 3, cd);
+  const chLight = new THREE.PointLight(0xffb060, 55, 17, 2);
+  chLight.position.set(0, 14.2, 0); cd.add(chLight);
 
-  // 学者书桌
-  const sc = P('scholar', gMid);
+  // 学者书桌 ×2
+  const dk = P('desk-scholar', gL3);
   function desk(x, z, ry) {
-    const g = new THREE.Group(); g.position.set(x, F1, z); g.rotation.y = ry; sc.add(g);
-    const wm = M(0x4a3524, { rough: 0.85 });
-    box(1.7, 0.09, 0.95, wm, 0, 0.76, 0, g);
-    for (const sx of [-0.75, 0.75]) for (const sz of [-0.38, 0.38])
-      box(0.09, 0.72, 0.09, wm, sx, 0.36, sz, g);
-    box(0.5, 0.07, 0.4, wm, 0, 0.42, 0, g);   // 椅面
-    box(0.5, 0.7, 0.07, wm, 0, 0.75, -0.42, g);
-    for (const sx of [-0.2, 0.2]) for (const sz of [-0.15, 0.15])
-      box(0.06, 0.42, 0.06, wm, sx, 0.21, sz, g);
-    for (let i = 0; i < 3; i++)   // 书堆
-      box(0.42 - i * 0.05, 0.09, 0.32, M([0x7a2e2e, 0x2e4a7a, 0x8a6a2e][i], { rough: 0.9 }), -0.45, 0.85 + i * 0.09, 0.1, g, (rnd() - 0.5) * 0.3);
-    cyl(0.045, 0.045, 0.32, waxM, 0.45, 0.95, -0.15, g, 8);   // 蜡烛
-    const f = sph(0.06, flameM, 0.45, 1.16, -0.15, g); f.castShadow = false;
-    box(0.3, 0.02, 0.4, M(0xd8cbaa, { rough: 0.9 }), 0.1, 0.82, 0.15, g, 0.2);  // 摊开的书页
+    const g = new THREE.Group(); g.position.set(x, FY, z); g.rotation.y = ry; dk.add(g);
+    box(1.8, 0.1, 0.9, shelfWoodM, 0, 0.78, 0, g);
+    for (const sx of [-0.8, 0.8]) for (const sz of [-0.35, 0.35]) box(0.09, 0.78, 0.09, shelfWoodM, sx, 0.39, sz, g);
+    for (let i = 0; i < 3; i++) box(0.5 - i * 0.07, 0.12, 0.36, paperM, -0.5, 0.89 + i * 0.12, 0.1, g);
+    box(0.4, 0.3, 0.3, M(bookCols[(rnd() * 10) | 0], { rough: 0.85 }), 0.45, 0.98, -0.15, g);
+    cyl(0.04, 0.04, 0.3, waxPureM, 0.6, 0.98, 0.25, g, 6).castShadow = false;
+    sph(0.045, M(0xffb45e, { emissive: 0xff9a3e, ei: 2.5 }), 0.6, 1.16, 0.25, g, 1, 1.4, 1).castShadow = false;
+    const q = cyl(0.015, 0.015, 0.5, paperM, -0.1, 1.0, 0.3, g, 5); q.rotation.z = 1.1; q.castShadow = false;
+    box(0.5, 0.45, 0.5, darkWoodM, 0, 0.22, 0.85, g);   // 凳
   }
-  desk(4.3, -3.2, -Math.PI / 2);
-  desk(-4.3, 3.2, Math.PI / 2);
-  desk(-4.3, -3.4, Math.PI / 2);
+  desk(4, 4.5, 0.3); desk(-5.5, 4.5, -0.4);
+
+  // 旋转楼梯
+  const sp2 = P('stair-spiral', gL3);
+  spiralStair(-3.5, -1, 1.7, FY, 16.3, sp2);
 })();
 
-/* ============ 顶层：双王子王座厅 ============ */
-(function buildF2() {
-  // 楼板（中央留洞，旋转楼梯穿过）
-  const sy = F2 - 0.2;
-  box(12, 0.4, 3, floorM, 0, sy, 4.5, P('throne', gTop));
-  box(12, 0.4, 3, floorM, 0, sy, -4.5, P('throne', gTop));
-  box(3, 0.4, 6, floorM, -4.5, sy, 0, P('throne', gTop));
-  box(3, 0.4, 6, floorM, 4.5, sy, 0, P('throne', gTop));
+/* ============ L4 双王子王座厅 ============ */
+function throne(w, h, x, y, z, ry, parent) {
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; parent.add(g);
+  const m = M(0xffffff, { map: woodTex, rough: 0.7 });
+  box(w, 0.5, 0.85, m, 0, 0.25, 0, g);
+  box(w, h, 0.35, m, 0, h / 2 + 0.45, -0.38, g);
+  const t1 = box(0.18, 0.95, 0.3, m, -w / 2 + 0.2, h + 0.65, -0.38, g); t1.rotation.z = 0.4;
+  const t2 = box(0.18, 0.95, 0.3, m, w / 2 - 0.2, h + 0.65, -0.38, g); t2.rotation.z = -0.4;
+  box(0.32, h * 0.5, 0.95, m, -w / 2 - 0.06, h * 0.32 + 0.45, 0, g);
+  box(0.32, h * 0.5, 0.95, m, w / 2 + 0.06, h * 0.32 + 0.45, 0, g);
+  cone(0.15, 0.55, goldM, -w / 2 + 0.2, h + 1.25, -0.38, g, 4);
+  cone(0.15, 0.55, goldM, w / 2 - 0.2, h + 1.25, -0.38, g, 4);
+  box(w - 0.3, 0.18, 0.72, M(0x5a1e2a, { rough: 0.95 }), 0, 0.6, 0.05, g);
+  return g;
+}
 
-  const th = P('throne', gTop);
-  railing(-3, 3, 3, 3, F2, th);
-  railing(-3, -3, 3, -3, F2, th);
-  railing(-3, -3, -3, 3, F2, th);
-  railing(3, -3, 3, 3, F2, th);
-
-  // 王座
-  function throne(x, big) {
-    const g = new THREE.Group(); g.position.set(x, F2, -4.1); th.add(g);
-    const sm = M(0x2e3138, { rough: 0.8 });
-    const s = big ? 1 : 0.68;
-    box(1.5 * s, 0.55, 1.25 * s, sm, 0, 0.28, 0, g);
-    box(1.6 * s, (big ? 3.4 : 2.4), 0.38, sm, 0, (big ? 1.7 : 1.2) + 0.5, -0.6 * s, g);
-    box(1.7 * s, 0.2, 0.45, goldM, 0, (big ? 3.55 : 2.55), -0.6 * s, g);
-    for (const sx of [-0.78, 0.78])
-      sph(0.14 * s + 0.04, goldM, sx * s, (big ? 3.55 : 2.55) + 0.14, -0.6 * s, g);
-    box(1.25 * s, 0.35, 1.05 * s, M(0x5e1a24, { rough: 0.9 }), 0, 0.68, 0.05, g);
-    for (const sx of [-0.62, 0.62]) box(0.26 * s, 0.95, 1.15 * s, sm, sx * s, 0.72, 0, g);
-    if (big) {  // 洛里安的大剑靠在王座旁
-      const sw = box(0.16, 2.6, 0.05, M(0x8a8f96, { metal: 0.7, rough: 0.35 }), 1.0 * s, 1.3, -0.3, g);
-      sw.rotation.z = 0.28;
-      box(0.5, 0.1, 0.08, goldM, 0.62 * s, 0.35, -0.3, g).rotation.z = 0.28;
-    }
+(function buildL4() {
+  const FY = 16.3;
+  // 王座长廊：南双开门 + 门框
+  const co = P('corridor', gL4);
+  box(3.0, 3.6, 0.5, stoneFrameM, 0, FY + 1.8, 3.0, co);
+  const doorM = M(0xffffff, { map: woodTex, rough: 0.8 });
+  const d1 = box(1.35, 3.3, 0.16, doorM, -0.72, FY + 1.65, 3.0, co); d1.rotation.y = 0.5;
+  box(1.35, 3.3, 0.16, doorM, 0.72, FY + 1.65, 3.0, co);
+  for (const x of [-4, 4]) {
+    box(0.7, 3.6, 0.7, stoneFrameM, x, FY + 1.8, 1.5, co);
+    sph(0.3, M(0xffb45e, { emissive: 0xff9a3e, ei: 1.8 }), x, FY + 3.0, 1.1, co, 1, 1.3, 1).castShadow = false;
   }
-  throne(-1.35, true);
-  throne(1.35, false);
+
+  // 王座：北端高台，一大一小
+  const th = P('throne', gL4);
+  box(7, 0.5, 2.6, darkStoneM, 0, FY + 0.25, -3.6, th);
+  box(7, 0.25, 2.6, darkStoneM, 0, FY + 0.62, -3.6, th);
+  throne(2.0, 2.2, -1.3, FY + 0.75, -3.8, 0, th);    // 洛里安大王座
+  throne(1.3, 1.5, 1.4, FY + 0.75, -3.7, 0, th);     // 洛斯里克小王座
+  // 王座上的剪影（示意）
+  const figM = M(0x3a3f4a, { rough: 0.6, metal: 0.4 });
+  box(0.7, 0.9, 0.5, figM, -1.3, FY + 1.6, -3.7, th);
+  sph(0.24, figM, -1.3, FY + 2.25, -3.65, th);
+  box(0.45, 0.6, 0.35, figM, 1.4, FY + 1.35, -3.6, th);
+  sph(0.18, figM, 1.4, FY + 1.8, -3.55, th);
+
+  // 落地大窗（东西墙各三扇）
+  const wg = P('window-great', gL4);
+  for (const z of [-2.5, 0, 2.5]) {
+    pointedWin(1.5, 3.4, -6.02, FY + 2.4, z, -Math.PI / 2, wg, true);
+    pointedWin(1.5, 3.4, 6.02, FY + 2.4, z, Math.PI / 2, wg, true);
+  }
+  pointedWin(1.6, 3.6, 0, FY + 2.5, -5.02, Math.PI, wg, true);   // 北墙中央大窗
 
   // 红毯
-  box(2.3, 0.06, 9.5, M(0x5e1a24, { rough: 0.95 }), 0, F2 + 0.05, 0.6, th);
-  // 王座厅烛台
-  const im = M(0x2b2b30, { rough: 0.55, metal: 0.55 });
-  for (const sx of [-3.6, 3.6]) {
-    const g = new THREE.Group(); g.position.set(sx, F2, 2.6); th.add(g);
-    cyl(0.28, 0.34, 0.14, im, 0, 0.07, 0, g);
-    cyl(0.055, 0.075, 2.6, im, 0, 1.3, 0, g);
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2 + 0.4;
-      const ax = Math.cos(a) * 0.5, az = Math.sin(a) * 0.5;
-      const arm = box(0.55, 0.05, 0.05, im, ax / 2, 2.48, az / 2, g); arm.rotation.y = -a;
-      cyl(0.05, 0.05, 0.4, waxM, ax, 2.65, az, g, 8);
-      const f = sph(0.07, flameM, ax, 2.92, az, g); f.castShadow = false;
-    }
-  }
+  const cp = P('carpet', gL4);
+  const r = box(2.2, 0.04, 6.5, M(0xffffff, { map: carpetTex, rough: 0.98 }), 0, FY + 0.33, -0.5, cp);
+  r.receiveShadow = true;
+
   // 挂毯
-  const banM = M(0xffffff, { map: bannerTex, rough: 0.9 });
-  for (const bx of [-2.9, 2.9]) {
-    const b = box(1.6, 3.8, 0.08, banM, bx, F2 + 2.8, -5.32, th); b.castShadow = false;
-    box(1.8, 0.12, 0.12, darkWoodM, bx, F2 + 4.75, -5.3, th);
+  const tp = P('tapestry', gL4);
+  const tapM = M(0x4a2a3a, { rough: 0.95 });
+  for (const x of [-4, 4]) {
+    box(1.5, 3.4, 0.1, tapM, x, FY + 2.6, -4.75, tp);
+    box(1.5, 0.25, 0.12, goldM, x, FY + 4.35, -4.75, tp);
   }
-  for (const sz of [-1.8, 1.8]) {
-    const b1 = box(0.08, 3.8, 1.6, banM, 5.32, F2 + 2.8, sz, th); b1.castShadow = false;
-    const b2 = box(0.08, 3.8, 1.6, banM, -5.32, F2 + 2.8, sz, th); b2.castShadow = false;
-  }
+  box(1.5, 3.4, 0.1, tapM, -5.75, FY + 2.6, 0, tp);
 
-  // 落地大窗（独立部件）
-  const wn = P('windows', gTop);
-  const glassM2 = M(0x9fc4e8, { rough: 0.2, metal: 0.1, transparent: true, opacity: 0.5, emissive: 0x2a4a66, ei: 0.35 });
-  const frameM2 = M(0x3a3e45, { rough: 0.85 });
-  function bigWin(w, h, x, y, z, ry) {
-    const grp = new THREE.Group(); grp.position.set(x, y, z); grp.rotation.y = ry; wn.add(grp);
-    box(w + 0.4, h, 0.45, frameM2, 0, h / 2, 0, grp);
-    const gl = box(w, h - 0.3, 0.14, glassM2, 0, h / 2, 0.07, grp); gl.castShadow = false;
-    box(0.1, h - 0.3, 0.16, frameM2, 0, h / 2, 0.08, grp);
-    for (const fy of [0.3, 0.55, 0.78]) box(w, 0.1, 0.16, frameM2, 0, h * fy, 0.08, grp);
-    box(w + 0.6, 0.2, 0.55, frameM2, 0, -0.06, 0.02, grp);
-    const aw = Math.hypot(w / 2 + 0.2, 1.1);
-    const a1 = box(aw, 0.3, 0.45, frameM2, -(w / 4 + 0.1), h + 0.4, 0, grp); a1.rotation.z = 0.5;
-    const a2 = box(aw, 0.3, 0.45, frameM2, (w / 4 + 0.1), h + 0.4, 0, grp); a2.rotation.z = -0.5;
-  }
-  for (const x of [-3.5, 0, 3.5]) bigWin(2.1, 3.8, x, F2 + 0.7, D / 2 + 0.02, 0);
-  for (const z of [-2, 2]) bigWin(2.1, 3.8, W / 2 + 0.02, F2 + 0.7, z, Math.PI / 2);
-  for (const z of [-2, 2]) bigWin(2.1, 3.8, -W / 2 - 0.02, F2 + 0.7, z, -Math.PI / 2);
-})();
-
-/* ============ 塔外：庭院、篝火、枯树 ============ */
-(function buildYard() {
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), M(0xffffff, { map: ashTex, rough: 1 }));
-  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
-  scene.add(ground);
-  // 前院石板（无部件归属，仅装饰）
-  const yard = new THREE.Group(); scene.add(yard);
-  box(13, 0.12, 9, stoneDarkM, 0, 0.06, 10.5, yard);
-
-  const bf = P('bonfire', scene);
-  // 灰烬堆
-  sph(0.95, M(0x6a655c, { rough: 1 }), 7, 0.28, 9, bf, 1, 0.55, 1);
-  sph(0.6, M(0x7d786e, { rough: 1 }), 7.3, 0.35, 8.7, bf, 1, 0.5, 1);
-  // 螺旋剑
-  const sword = box(0.14, 1.7, 0.05, M(0x8a8f96, { metal: 0.7, rough: 0.35 }), 7, 1.05, 9, bf);
-  sword.rotation.z = 0.45; sword.rotation.x = 0.15;
-  box(0.4, 0.08, 0.08, goldM, 6.72, 0.42, 8.95, bf).rotation.z = 0.45;
-  // 柴堆
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + 0.2;
-    const stick = cyl(0.05, 0.06, 1.1, darkWoodM, 7 + Math.cos(a) * 0.25, 0.55, 9 + Math.sin(a) * 0.25, bf, 8);
-    stick.rotation.z = Math.cos(a) * 0.6; stick.rotation.x = -Math.sin(a) * 0.6;
-  }
-  // 火焰
-  const fl1 = cyl(0.03, 0.38, 1.0, flameM, 7, 1.05, 9, bf, 10); fl1.castShadow = false;
-  const fl2 = cyl(0.02, 0.22, 0.7, M(0xffc46a, { emissive: 0xff9a2e, ei: 2.8, rough: 0.6 }), 7, 1.0, 9, bf, 10); fl2.castShadow = false;
-
-  // 枯树
-  function deadTree(x, z, s) {
-    const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
-    const tm = M(0x2e2a24, { rough: 1 });
-    const trunk = cyl(0.14 * s, 0.26 * s, 3.2 * s, tm, 0, 1.6 * s, 0, g, 8);
-    trunk.rotation.z = 0.08;
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2 + 0.5;
-      const br = cyl(0.04 * s, 0.08 * s, 1.6 * s, tm, Math.cos(a) * 0.5 * s, (2.6 + (i % 2) * 0.5) * s, Math.sin(a) * 0.5 * s, g, 6);
-      br.rotation.z = Math.cos(a) * 0.9; br.rotation.x = -Math.sin(a) * 0.9;
-    }
-  }
-  deadTree(-8.5, 7.5, 1.1); deadTree(10, 4.5, 0.85); deadTree(-9, -4, 1.0);
-  // 碎石
-  for (let i = 0; i < 10; i++) {
-    const a = rnd() * Math.PI * 2, r = 8 + rnd() * 4;
-    sph(0.25 + rnd() * 0.4, stoneDarkM, Math.cos(a) * r, 0.12, Math.sin(a) * r, yard, 1, 0.55, 1);
-  }
+  // 洛里安大剑
+  const sw = P('sword-lorian', gL4);
+  const g = new THREE.Group(); g.position.set(2.6, FY + 0.75, -3.0); g.rotation.z = -0.35; g.rotation.y = 0.3; sw.add(g);
+  box(0.28, 2.6, 0.08, M(0x9aa2b0, { rough: 0.35, metal: 0.75 }), 0, 1.5, 0, g);
+  box(0.9, 0.16, 0.14, goldM, 0, 0.25, 0, g);
+  cyl(0.07, 0.07, 0.5, darkWoodM, 0, -0.05, 0, g, 8);
+  sph(0.11, goldM, 0, -0.35, 0, g);
 })();
 
 /* ============ 交互 ============ */
@@ -695,9 +828,8 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 function flyTo(pos, tgt) { fly = { pos: pos.clone(), tgt: tgt.clone() }; }
 controls.addEventListener('start', () => { fly = null; });
 
-// 部件列表
 const partsWrap = document.getElementById('parts');
-for (const ck of ['out', 'f0', 'f1', 'f2']) {
+for (const ck of ['out', 'yard', 'l1', 'l2', 'l3', 'l4', 'roof']) {
   const h = document.createElement('div'); h.className = 'cat'; h.textContent = CATS[ck];
   partsWrap.appendChild(h);
   for (const id in PARTS) {
@@ -710,46 +842,43 @@ for (const ck of ['out', 'f0', 'f1', 'f2']) {
   }
 }
 
-// 视角模式
 function setMode(m) {
   cur = m;
   document.querySelectorAll('.vbtn').forEach(b => b.classList.toggle('on', b.dataset.view === m));
-  gRoof.visible = (m === 'exterior');
-  // 内部视角：隐藏南+东外墙，做娃娃屋剖面，纵览三层
+  gRoof.visible = (m !== 'interior');
   const cut = (m === 'interior');
-  cutWalls.w0s.visible = !cut; cutWalls.w0e.visible = !cut;
-  cutWalls.w1s.visible = !cut; cutWalls.w1e.visible = !cut;
-  cutWalls.w2s.visible = !cut; cutWalls.w2e.visible = !cut;
-  PARTS['windows'].group.visible = !cut;   // 落地大窗挂在南/东墙上
+  for (const k in cutWalls) cutWalls[k].visible = !cut;
   const xray = (m === 'xray');
-  extMats.forEach(mt => { mt.transparent = xray; mt.opacity = xray ? 0.13 : 1; mt.depthWrite = !xray; mt.needsUpdate = true; });
-  if (m === 'exterior') flyTo(V(21, 14, 25), V(0, 9, 0));
-  if (m === 'interior') flyTo(V(20, 15, 27), V(0, 8, 0));
-  if (m === 'xray') flyTo(V(23, 17, 23), V(0, 8, 0));
+  extMats.forEach(mt => { mt.transparent = xray; mt.opacity = xray ? 0.14 : 1; mt.depthWrite = !xray; mt.needsUpdate = true; });
+  if (m === 'exterior') flyTo(V(34, 24, 40), V(0, 10, 0));
+  if (m === 'interior') flyTo(V(25, 21, 31), V(0, 9.5, 0));
+  if (m === 'roof') flyTo(V(23, 36, 27), V(0, 17, 0));
+  if (m === 'xray') flyTo(V(34, 26, 38), V(0, 10, 0));
 }
 document.querySelectorAll('.vbtn').forEach(b => b.onclick = () => setMode(b.dataset.view));
 
-// 开关
 const tLabels = document.getElementById('tLabels');
 tLabels.onclick = () => { labelsOn = !labelsOn; tLabels.classList.toggle('on', labelsOn); };
 const tRotate = document.getElementById('tRotate');
 tRotate.onclick = () => { controls.autoRotate = !controls.autoRotate; tRotate.classList.toggle('on', controls.autoRotate); };
 document.getElementById('explode').addEventListener('input', e => {
   const t = e.target.value / 100;
-  gRoof.position.y = 7 * t;
-  gTop.position.y = 4.5 * t;
-  gMid.position.y = 2.2 * t;
+  gRoof.position.y = 9 * t;
+  gL4.position.y = 6.5 * t;
+  gL3.position.y = 4 * t;
+  gL2.position.y = 2 * t;
 });
 document.getElementById('menuBtn').onclick = () => { panel.classList.toggle('hide'); setTimeout(onResize, 260); };
 document.getElementById('infoX').onclick = () => infoEl.classList.remove('show');
 
-// 选择部件
 function ensureVisible(p) {
   const L = p.layer;
-  if (L === 'roof') { if (cur !== 'exterior') setMode('exterior'); return; }
-  if (L === 'yard') return;
-  if (p.id === 'windows' && cur === 'interior') { setMode('exterior'); return; }
-  if (p.xray && cur === 'exterior') setMode('interior');
+  if (L === 'roof') { if (cur === 'interior' || cur === 'xray') setMode('exterior'); return; }
+  if (L === 'ground') return;
+  if (p.xray) {
+    if (cur === 'exterior') setMode('xray');
+    else if (cur === 'roof') setMode('xray');
+  } else if (cur === 'interior') setMode('xray');
 }
 function clearHl() {
   if (hlBox) { scene.remove(hlBox); hlBox.geometry.dispose(); hlBox.material.dispose(); hlBox = null; }
@@ -762,8 +891,7 @@ function selectPart(id) {
   document.querySelectorAll('.pbtn').forEach(b => b.classList.toggle('on', b.dataset.part === id));
   document.querySelectorAll('.lbl').forEach(el => el.classList.toggle('hot', el.dataset.part === id));
   infoName.textContent = p.name;
-  const layerName = { roof: ' · 塔顶', top: ' · 顶层', mid: ' · 中层', f0: ' · 底层', yard: ' · 塔外' }[p.layer] || '';
-  infoCat.textContent = CATS[p.cat] + layerName;
+  infoCat.textContent = CATS[p.cat];
   infoDesc.textContent = p.desc;
   infoEl.classList.add('show');
   p.group.updateWorldMatrix(true, true);
@@ -772,10 +900,10 @@ function selectPart(id) {
     const c = tmpBox.getCenter(new THREE.Vector3());
     const size = tmpBox.getSize(new THREE.Vector3()).length();
     const dir = V(...(p.viewDir || [1, 0.6, 1])).normalize();
-    flyTo(c.clone().addScaledVector(dir, Math.max(3, size * 1.4)), c);
+    flyTo(c.clone().addScaledVector(dir, Math.max(3.2, size * 1.5)), c);
   }
   clearHl();
-  hlBox = new THREE.Box3Helper(tmpBox, 0xff8c2e);
+  hlBox = new THREE.Box3Helper(tmpBox, 0xffb020);
   hlBox.material.depthTest = false;
   hlBox.renderOrder = 999;
   scene.add(hlBox);
@@ -787,7 +915,6 @@ function clearSelection() {
   document.querySelectorAll('.lbl').forEach(el => el.classList.remove('hot'));
 }
 
-// 点击射线拾取
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
 let downX = 0, downY = 0;
 canvas.addEventListener('pointerdown', e => { downX = e.clientX; downY = e.clientY; });
@@ -808,7 +935,6 @@ canvas.addEventListener('pointerup', e => {
   clearSelection();
 });
 
-// 标注
 const labelEls = [];
 for (const id in PARTS) {
   const p = PARTS[id];
@@ -824,7 +950,6 @@ const pv = new THREE.Vector3();
 function refreshLabels() {
   for (const { id, el, v } of labelEls) {
     const p = PARTS[id];
-    // 室内部件标注只在能看到室内的视角下显示，避免穿墙
     const showXray = cur === 'xray' || cur === 'interior';
     if (!labelsOn || !isShown(p.group) || (p.xray && !showXray)) { el.style.display = 'none'; continue; }
     pv.copy(v).applyMatrix4(p.group.matrixWorld).project(camera);
@@ -835,24 +960,22 @@ function refreshLabels() {
   }
 }
 
-// 自适应
 function onResize() {
   viewW = view.clientWidth; viewH = view.clientHeight;
   if (viewW < 2 || viewH < 2) return;
   renderer.setSize(viewW, viewH);
   camera.aspect = viewW / viewH;
-  camera.fov = viewW < viewH ? 62 : 48; // 竖屏拉开视野，房子能完整入镜
+  camera.fov = viewW < viewH ? 62 : 48;
   camera.updateProjectionMatrix();
 }
 window.addEventListener('resize', onResize);
 
-// 主循环
 function animate() {
   requestAnimationFrame(animate);
   if (fly) {
     camera.position.lerp(fly.pos, 0.07);
     controls.target.lerp(fly.tgt, 0.07);
-    if (camera.position.distanceTo(fly.pos) < 0.06) fly = null;
+    if (camera.position.distanceTo(fly.pos) < 0.08) fly = null;
   }
   controls.update();
   if (selected && hlBox && PARTS[selected].group) tmpBox.setFromObject(PARTS[selected].group);
@@ -860,7 +983,7 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-if (window.matchMedia('(max-width: 760px)').matches) panel.classList.add('hide'); // 手机默认收起侧栏
+if (window.matchMedia('(max-width: 760px)').matches) panel.classList.add('hide');
 onResize();
 setMode('exterior');
 animate();
