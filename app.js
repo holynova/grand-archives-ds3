@@ -8,7 +8,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.32;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x151b26);
@@ -26,9 +26,9 @@ controls.minDistance = 2;
 controls.maxDistance = 70;
 controls.autoRotateSpeed = 1.0;
 
-const hemi = new THREE.HemisphereLight(0x6a7a95, 0x3a322a, 0.6);
+const hemi = new THREE.HemisphereLight(0x99a7c0, 0x554a3c, 1.1);
 scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xffd9a8, 1.35);
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.1);
 sun.position.set(20, 28, 14);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
